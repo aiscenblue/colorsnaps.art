@@ -90,6 +90,9 @@ export const MainApp = ({ user, onLogout }: { user: User, onLogout: () => void }
   const allRandomPins = useSelector((state: RootState) => state.pins.randomPins);
   const savedPinIds = new Set(savedIds);
 
+  // Combine allPins and allRandomPins
+  const allAvailablePins = [...allPins, ...allRandomPins];
+
   // Determine active view based on pathname
   const currentPath = usePathname();
   const view = currentPath === '/' || currentPath === '/discover' ? 'discover' :
@@ -172,6 +175,7 @@ export const MainApp = ({ user, onLogout }: { user: User, onLogout: () => void }
           isSaved={isSaved}
           scriptsLoaded={true}
           currentUser={user}
+          allAvailablePins={allAvailablePins}
         />
       );
     }

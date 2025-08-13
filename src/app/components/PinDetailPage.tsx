@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { PROXY_URL, rgbToHex, ICONS } from '@/lib/utils';
 import { Icon } from './Icon';
 import { LocationAutocomplete } from './LocationAutocomplete';
+import { useRouter } from 'next/navigation';
 
 import { Pin, User } from '@/lib/redux';
 
@@ -19,7 +20,8 @@ declare global {
     }
 }
 
-export const PinDetailPage = ({ pin, onBack, onUpdatePin, onSavePin, onRemovePin, isSaved, scriptsLoaded, currentUser }: { pin: Pin, onBack: () => void, onUpdatePin: (pin: Pin) => void, onSavePin: (pinId: string) => void, onRemovePin: (pinId: string) => void, isSaved: boolean, scriptsLoaded: boolean, currentUser: User | null }) => {
+export const PinDetailPage = ({ pin, onBack, onUpdatePin, onSavePin, onRemovePin, isSaved, scriptsLoaded, currentUser, allAvailablePins }: { pin: Pin, onBack: () => void, onUpdatePin: (pin: Pin) => void, onSavePin: (pinId: string) => void, onRemovePin: (pinId: string) => void, isSaved: boolean, scriptsLoaded: boolean, currentUser: User | null, allAvailablePins: Pin[] }) => {
+    const router = useRouter();
     const [imageError, setImageError] = useState(false);
     const [isLoading, setIsLoading] = useState(true); // Add isLoading state
     const [palette, setPalette] = useState<number[][] | null>(null);
@@ -53,9 +55,21 @@ export const PinDetailPage = ({ pin, onBack, onUpdatePin, onSavePin, onRemovePin
 
     const handleSave = () => { onUpdatePin(editablePin); setIsEditing(false); };
 
+    const handleNextPin = () => {
+        const currentIndex = allAvailablePins.findIndex(p => p.id === pin.id);
+        if (currentIndex !== -1) {
+            const nextIndex = (currentIndex + 1) % allAvailablePins.length;
+            const nextPin = allAvailablePins[nextIndex];
+            router.push(`/details/${nextPin.id}`);
+        }
+    };
+
     return (
         <div className="p-2 md:p-6">
-            <button onClick={onBack} className="flex items-center gap-2 font-semibold mb-6 text-secondary hover:text-primary"><Icon path={ICONS.back} /> Back</button>
+            <div className="flex justify-between items-center mb-6">
+                <button onClick={onBack} className="flex items-center gap-2 font-semibold text-secondary hover:text-primary"><Icon path={ICONS.back} /> Back</button>
+                <button onClick={handleNextPin} className="flex items-center gap-2 font-semibold text-secondary hover:text-primary">Next <Icon path={ICONS.next} /></button>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div> {/* Visuals */}
                     {imageError ? (

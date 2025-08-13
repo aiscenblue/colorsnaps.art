@@ -1,26 +1,81 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #0A192F; /* Dark Navy Blue */
+  --foreground: #E6F1FF; /* Light Blue-White */
+  --secondary-text: #A8B2D1; /* Muted Light Blue */
+  --accent-color: #64FFDA; /* Bright Teal */
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-geist-sans); /* Keep existing if defined, otherwise a clean sans-serif */
   --font-mono: var(--font-geist-mono);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #0A192F; /* Dark Navy Blue */
+    --foreground: #E6F1FF; /* Light Blue-White */
+    --secondary-text: #A8B2D1; /* Muted Light Blue */
+    --accent-color: #64FFDA; /* Bright Teal */
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Arial', sans-serif; /* Changed to a clean sans-serif for modern look */
+}
+
+button {
+  cursor: pointer;
+}
+
+/* Custom utility classes for photo album theme */
+.bg-primary { background-color: var(--foreground); }
+.text-primary { color: var(--foreground); }
+.border-primary { border-color: var(--foreground); }
+
+.bg-background { background-color: var(--background); }
+.text-background { color: var(--background); }
+
+.text-secondary { color: var(--secondary-text); }
+
+.bg-accent { background-color: var(--accent-color); }
+.text-accent { color: var(--accent-color); }
+.border-accent { border-color: var(--accent-color); }
+
+/* Specific hover states for buttons */
+.hover\:bg-primary-dark:hover { background-color: color-mix(in srgb, var(--foreground) 90%, black); }
+.hover\:bg-accent-dark:hover { background-color: color-mix(in srgb, var(--accent-color) 90%, black); }
+.hover\:text-primary-dark:hover { color: color-mix(in srgb, var(--foreground) 90%, black); }
+.hover\:border-primary-dark:hover { border-color: color-mix(in srgb, var(--foreground) 90%, black); }
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: .5;
+  }
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Placeholder color for inputs and textareas */
+::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
+  color: var(--secondary-text);
+  opacity: 1; /* Firefox */
+}
+
+:-ms-input-placeholder { /* Internet Explorer 10-11 */
+  color: var(--secondary-text);
+}
+
+::-ms-input-placeholder { /* Microsoft Edge */
+  color: var(--secondary-text);
 }

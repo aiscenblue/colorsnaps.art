@@ -42,7 +42,9 @@ export const AnimatedAuthBackground = React.memo(function AnimatedAuthBackground
                         className="rounded-lg border-2 border-primary"
                         onError={(e) => {
                           e.currentTarget.style.display = 'none'; // Hide the broken image
-                          e.currentTarget.parentElement.style.backgroundColor = 'var(--secondary-text)'; // Set background color
+                          if (e.currentTarget.parentElement) {
+                            e.currentTarget.parentElement.style.backgroundColor = 'var(--secondary-text)'; // Set background color
+                          }
                         }}
                       />
                     ) : (

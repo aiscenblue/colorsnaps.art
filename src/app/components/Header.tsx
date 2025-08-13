@@ -1,10 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Icon } from './Icon';
 import { ICONS } from '@/lib/utils';
 
-export const Header = ({ onAddPin, activeView, onViewChange, onLogout }: { onAddPin: (url: string) => void, activeView: string, onViewChange: (view: string) => void, onLogout: () => void }) => {
-  const [url, setUrl] = useState('');
-  const handleAddPin = () => { if (url.trim()) { onAddPin(url.trim()); setUrl(''); } };
+export const Header = ({ onAddPin, activeView, onViewChange, onLogout }: { onAddPin: (imgUrl: string) => void, activeView: string, onViewChange: (view: string) => void, onLogout: () => void }) => {
   return (
     <header className="p-4 bg-background/80 backdrop-blur-lg border-b-2 border-primary sticky top-0 z-20">
       <div className="flex items-center gap-4 mb-4">
@@ -15,7 +13,6 @@ export const Header = ({ onAddPin, activeView, onViewChange, onLogout }: { onAdd
         </nav>
         <button onClick={onLogout} className="flex items-center gap-2 font-semibold p-2 rounded-md hover:bg-accent"><Icon path={ICONS.logout} /> Logout</button>
       </div>
-      
     </header>
   );
 };

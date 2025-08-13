@@ -75,8 +75,9 @@ export const MainApp = ({ user, onLogout }: { user: User, onLogout: () => void }
     }
 
     return () => {
-      if (loader.current) {
-        observer.unobserve(loader.current);
+      const currentLoader = loader.current; // Capture the ref value
+      if (currentLoader) {
+        observer.unobserve(currentLoader);
       }
     };
   }, [hasMore, isClient]);

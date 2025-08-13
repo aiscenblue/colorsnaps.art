@@ -8,7 +8,7 @@ export const PinNotFound = () => {
       <Icon path={ICONS.warning} className="w-24 h-24 mb-4 animate-bounce" />
       <h2 className="text-3xl font-bold mb-2">Pin Not Found</h2>
       <p className="text-lg text-center">
-        Oops! It seems like the pin you're looking for doesn't exist or has been removed.
+        Oops! It seems like the pin you&apos;re looking for doesn&apos;t exist or has been removed.
       </p>
       <p className="text-md text-center mt-2">
         Please check the URL or go back to the Discover page.

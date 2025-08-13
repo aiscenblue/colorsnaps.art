@@ -48,14 +48,18 @@ export const MainApp = ({ user, onLogout }: { user: User, onLogout: () => void }
       return newRandomPins;
     };
 
+    // Dispatch random pins to Redux store
+    const newRandomPins = generateRandomPins(pinsPerPage);
+    dispatch(pinsSlice.actions.setRandomPins(newRandomPins));
+
     if (page === 1) { // Initial load
-      setDisplayedPins([...allPins, ...generateRandomPins(pinsPerPage)]);
+      setDisplayedPins([...allPins, ...newRandomPins]);
     } else { // Subsequent loads
-      setDisplayedPins(prevPins => [...prevPins, ...generateRandomPins(pinsPerPage)]);
+      setDisplayedPins(prevPins => [...prevPins, ...newRandomPins]);
     }
     setHasMore(true); // Always allow loading more random pins
 
-  }, [page, allPins, pinsPerPage, isClient]);
+  }, [page, allPins, pinsPerPage, isClient, dispatch]);
 
   // Intersection Observer for infinite scrolling
   useEffect(() => {
@@ -83,6 +87,7 @@ export const MainApp = ({ user, onLogout }: { user: User, onLogout: () => void }
   }, [hasMore, isClient]);
 
   const { savedIds } = useSelector((state: RootState) => state.pins);
+  const allRandomPins = useSelector((state: RootState) => state.pins.randomPins);
   const savedPinIds = new Set(savedIds);
 
   // Determine active view based on pathname
@@ -137,7 +142,7 @@ export const MainApp = ({ user, onLogout }: { user: User, onLogout: () => void }
 
   const renderView = () => {
     if (isDetailsPage && pinIdFromUrl) {
-      const selectedPin = [...allPins, ...displayedPins].find(p => p.id === pinIdFromUrl);
+      const selectedPin = [...allPins, ...allRandomPins].find(p => p.id === pinIdFromUrl);
       const isSaved = savedIds.includes(pinIdFromUrl);
 
       const handleUpdatePin = (updatedPin: Pin) => {

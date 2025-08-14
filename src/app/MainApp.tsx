@@ -15,7 +15,8 @@ export const MainApp = ({ user, onLogout, onLoginSuccess }: { user: User | null,
   const allPins = useSelector(selectDecryptedPins);
   const [isClient, setIsClient] = React.useState(false);
   const [page, setPage] = useState(1);
-  const pinsPerPage = 20;
+  const INITIAL_PINS_COUNT = 50;
+  const pinsPerPage = 10;
   const [displayedPins, setDisplayedPins] = useState<Pin[]>([]);
   const [hasMore, setHasMore] = useState(true);
   const loader = useRef(null);
@@ -49,7 +50,7 @@ export const MainApp = ({ user, onLogout, onLoginSuccess }: { user: User | null,
       return newRandomPins;
     };
 
-    const newRandomPins = generateRandomPins(pinsPerPage);
+    const newRandomPins = generateRandomPins(page === 1 ? INITIAL_PINS_COUNT : pinsPerPage);
     if (page === 1) { // Initial load
       dispatch(pinsSlice.actions.setRandomPins(newRandomPins));
       setDisplayedPins([...allPins, ...newRandomPins]); // Update displayedPins immediately
@@ -61,30 +62,7 @@ export const MainApp = ({ user, onLogout, onLoginSuccess }: { user: User | null,
 
   }, [page, allPins, pinsPerPage, isClient, dispatch]);
 
-  // Intersection Observer for infinite scrolling
-  useEffect(() => {
-    if (!isClient || !hasMore) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) {
-          setPage(prevPage => prevPage + 1);
-        }
-      },
-      { threshold: 1.0 }
-    );
-
-    if (loader.current) {
-      observer.observe(loader.current);
-    }
-
-    return () => {
-      const currentLoader = loader.current; // Capture the ref value
-      if (currentLoader) {
-        observer.unobserve(currentLoader);
-      }
-    };
-  }, [hasMore, isClient]);
+  
 
   const allRandomPins = useSelector((state: RootState) => state.pins.randomPins);
   const { savedIds } = useSelector((state: RootState) => state.pins);
@@ -211,8 +189,8 @@ export const MainApp = ({ user, onLogout, onLoginSuccess }: { user: User | null,
           <>
             <PinGrid pins={displayedPins} onRemovePin={undefined} />
             {hasMore && (
-              <div ref={loader} className="text-center py-4">
-                <p className="text-foreground">Loading more pins...</p>
+              <div className="text-center py-4">
+                <button onClick={() => setPage(prevPage => prevPage + 1)} className="bg-accent text-background font-bold py-2 px-4 rounded-full">Load More</button>
               </div>
             )}
           </>

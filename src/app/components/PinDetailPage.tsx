@@ -132,7 +132,7 @@ export const PinDetailPage = ({ pin, onBack, onUpdatePin, onSavePin, onRemovePin
                             : <div className="flex gap-2"><button onClick={handleSave} className="bg-accent text-background font-semibold px-4 py-2 rounded-md">Save</button><button onClick={() => setIsEditing(false)} className="bg-accent text-background font-semibold px-4 py-2 rounded-md border-2 border-primary">Cancel</button></div>)
                             : (isSaved ? 
                                 <button onClick={() => onRemovePin(pin.id)} className="bg-red-600 text-background px-4 py-2 rounded-md border-2 border-red-600"><Icon path={ICONS.remove}/>Unsave</button>
-                                : <button onClick={() => { if (currentUser) onSavePin(pin.id); else onLoginRedirect(pathname); }} className="bg-accent text-background px-4 py-2 rounded-md border-2 border-primary"><Icon path={ICONS.save}/>Save</button>
+                                : <button onClick={() => onLoginRedirect(pathname)} className="bg-accent text-background px-4 py-2 rounded-md border-2 border-primary"><Icon path={ICONS.save}/>Save</button>
                             )
                         }
                     </div>

@@ -4,7 +4,7 @@ import Image from 'next/image';
 import { PROXY_URL, rgbToHex, ICONS } from '@/lib/utils';
 import { Icon } from './Icon';
 import { LocationAutocomplete } from './LocationAutocomplete';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 
 import { Pin, User } from '@/lib/redux';
 import ColorPaletteModal from './ColorPaletteModal';
@@ -21,8 +21,9 @@ declare global {
     }
 }
 
-export const PinDetailPage = ({ pin, onBack, onUpdatePin, onSavePin, onRemovePin, isSaved, scriptsLoaded, currentUser, allAvailablePins }: { pin: Pin, onBack: () => void, onUpdatePin: (pin: Pin) => void, onSavePin: (pinId: string) => void, onRemovePin: (pinId: string) => void, isSaved: boolean, scriptsLoaded: boolean, currentUser: User | null, allAvailablePins: Pin[] }) => {
+export const PinDetailPage = ({ pin, onBack, onUpdatePin, onSavePin, onRemovePin, isSaved, scriptsLoaded, currentUser, allAvailablePins, onLoginRedirect }: { pin: Pin, onBack: () => void, onUpdatePin: (pin: Pin) => void, onSavePin: (pinId: string) => void, onRemovePin: (pinId: string) => void, isSaved: boolean, scriptsLoaded: boolean, currentUser: User | null, allAvailablePins: Pin[], onLoginRedirect: (path: string) => void }) => {
     const router = useRouter();
+    const pathname = usePathname();
     const [imageError, setImageError] = useState(false);
     const [isLoading, setIsLoading] = useState(true); // Add isLoading state
     const [palette, setPalette] = useState<number[][] | null>(null);
@@ -131,7 +132,7 @@ export const PinDetailPage = ({ pin, onBack, onUpdatePin, onSavePin, onRemovePin
                             : <div className="flex gap-2"><button onClick={handleSave} className="bg-accent text-background font-semibold px-4 py-2 rounded-md">Save</button><button onClick={() => setIsEditing(false)} className="bg-accent text-background font-semibold px-4 py-2 rounded-md border-2 border-primary">Cancel</button></div>)
                             : (isSaved ? 
                                 <button onClick={() => onRemovePin(pin.id)} className="bg-red-600 text-background px-4 py-2 rounded-md border-2 border-red-600"><Icon path={ICONS.remove}/>Unsave</button>
-                                : <button onClick={() => onSavePin(pin.id)} className="bg-accent text-background px-4 py-2 rounded-md border-2 border-primary"><Icon path={ICONS.save}/>Save</button>
+                                : <button onClick={() => { if (currentUser) onSavePin(pin.id); else onLoginRedirect(pathname); }} className="bg-accent text-background px-4 py-2 rounded-md border-2 border-primary"><Icon path={ICONS.save}/>Save</button>
                             )
                         }
                     </div>

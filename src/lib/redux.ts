@@ -50,7 +50,12 @@ const pinsSlice = createSlice({
     initialState: { all: [], savedIds: [], randomPins: [] } as PinsState,
     reducers: {
         setPins: (state, action: PayloadAction<Pin[]>) => { state.all = action.payload; },
-        addPin: (state, action: PayloadAction<Pin>) => { state.all.unshift(action.payload); DataService.savePins(state.all); },
+        addPin: (state, action: PayloadAction<Pin>) => {
+            state.all.unshift(action.payload);
+            if (action.payload.creatorId !== 'guest') {
+                DataService.savePins(state.all);
+            }
+        },
         updatePin: (state, action: PayloadAction<Pin>) => {
             const index = state.all.findIndex(p => p.id === action.payload.id);
             if (index !== -1) state.all[index] = action.payload;

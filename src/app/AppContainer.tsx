@@ -23,6 +23,5 @@ export const AppContainer = () => {
     const handleLogin = (user: User) => dispatch(authSlice.actions.loginSuccess(user));
     const handleLogout = () => { DataService.logout(); dispatch(authSlice.actions.logout()); };
 
-    if (!currentUser) return <AuthPage onLoginSuccess={handleLogin} />;
-    return <MainApp user={currentUser} onLogout={handleLogout} />;
+    return <MainApp user={currentUser} onLogout={handleLogout} onLoginSuccess={handleLogin} />;
 }

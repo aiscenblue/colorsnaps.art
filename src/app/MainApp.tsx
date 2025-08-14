@@ -6,9 +6,10 @@ import { MyPinsPage } from '@/app/components/MyPinsPage';
 import { Header } from '@/app/components/Header';
 import { useRouter, usePathname } from 'next/navigation';
 import { PinDetailPage } from '@/app/components/PinDetailPage';
+import { AuthPage } from '@/app/AuthPage';
 import { PinNotFound } from '@/app/components/PinNotFound';
 
-export const MainApp = ({ user, onLogout }: { user: User, onLogout: () => void }) => {
+export const MainApp = ({ user, onLogout, onLoginSuccess }: { user: User | null, onLogout: () => void, onLoginSuccess: (user: User) => void }) => {
   const dispatch = useDispatch();
   const router = useRouter();
   const allPins = useSelector(selectDecryptedPins);
@@ -116,13 +117,24 @@ export const MainApp = ({ user, onLogout }: { user: User, onLogout: () => void }
   
   
   
+  const handleLoginRedirect = (path: string) => {
+    localStorage.setItem('redirectPath', path);
+    router.push('/'); // Redirect to root, which will show AuthPage if not logged in
+  };
+
   const addPin = (imgUrl: string) => {
-    const newPin: Pin = { id: Date.now().toString(), imgUrl, creatorId: user.id, title: 'Untitled Pin', description: '', camera: '', location: '' };
+    const newPin: Pin = { id: Date.now().toString(), imgUrl, creatorId: user ? user.id : 'guest', title: 'Untitled Pin', description: '', camera: '', location: '' }; // Set creatorId to 'guest' if not logged in
     dispatch(pinsSlice.actions.addPin(newPin));
-    dispatch(uiSlice.actions.setView('myPins'));
+    router.push(`/details/${newPin.id}`); // Redirect to the details page of the new pin
   };
 
   const removePin = (pinId: string) => {
+    if (!user) {
+      // If user is not logged in, they cannot remove pins they created.
+      // However, they can still remove saved pins.
+      dispatch(pinsSlice.actions.removeSavedPinId(pinId));
+      return;
+    }
     if (allPins.find(p => p.id === pinId)?.creatorId === user.id) dispatch(pinsSlice.actions.removePin(pinId));
     dispatch(pinsSlice.actions.removeSavedPinId(pinId));
   };
@@ -172,6 +184,7 @@ export const MainApp = ({ user, onLogout }: { user: User, onLogout: () => void }
           scriptsLoaded={true}
           currentUser={user}
           allAvailablePins={allAvailablePins}
+          onLoginRedirect={handleLoginRedirect}
         />
       );
     }
@@ -193,7 +206,7 @@ export const MainApp = ({ user, onLogout }: { user: User, onLogout: () => void }
             <PinGrid pins={displayedPins} onRemovePin={undefined} />
           </>
         );
-        case 'myPins': return <MyPinsPage allPins={allPins} savedPinIds={savedPinIds} onRemovePin={removePin} currentUserId={user.id} />;
+                case 'myPins': return user ? <MyPinsPage allPins={allPins} savedPinIds={new Set(savedIds)} onRemovePin={removePin} currentUserId={user.id} /> : <AuthPage onLoginSuccess={onLoginSuccess} />;
         default: return (
           <>
             <PinGrid pins={displayedPins} onRemovePin={undefined} />
@@ -212,7 +225,7 @@ export const MainApp = ({ user, onLogout }: { user: User, onLogout: () => void }
       <Header onAddPin={addPin} activeView={view} onViewChange={(v: string) => {
         if (v === 'discover') router.push('/');
         else if (v === 'myPins') router.push('/my-pins');
-      }} onLogout={onLogout} />
+      }} onLogout={onLogout} isLoggedIn={!!user} />
       <main className="px-4 py-6 sm:px-6 lg:px-8">{renderView()}</main>
     </div>
   );

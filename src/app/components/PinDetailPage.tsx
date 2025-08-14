@@ -7,6 +7,7 @@ import { LocationAutocomplete } from './LocationAutocomplete';
 import { useRouter } from 'next/navigation';
 
 import { Pin, User } from '@/lib/redux';
+import ColorPaletteModal from './ColorPaletteModal';
 
 declare global {
     interface Window {
@@ -28,6 +29,7 @@ export const PinDetailPage = ({ pin, onBack, onUpdatePin, onSavePin, onRemovePin
     const [exifData, setExifData] = useState<Record<string, string> | null>(null);
     const [isEditing, setIsEditing] = useState(false);
     const [editablePin, setEditablePin] = useState(pin);
+    const [showAllPalettes, setShowAllPalettes] = useState(false);
 
     const getImageDimensions = (url: string) => {
         const regex = /picsum\.photos\/(\d+)\/(\d+)/;
@@ -58,9 +60,11 @@ export const PinDetailPage = ({ pin, onBack, onUpdatePin, onSavePin, onRemovePin
     const handleNextPin = () => {
         const currentIndex = allAvailablePins.findIndex(p => p.id === pin.id);
         if (currentIndex !== -1) {
-            const nextIndex = (currentIndex + 1) % allAvailablePins.length;
-            const nextPin = allAvailablePins[nextIndex];
-            router.push(`/details/${nextPin.id}`);
+            const nextIndex = currentIndex + 1;
+            if (nextIndex < allAvailablePins.length) {
+                const nextPin = allAvailablePins[nextIndex];
+                router.push(`/details/${nextPin.id}`);
+            }
         }
     };
 
@@ -68,7 +72,9 @@ export const PinDetailPage = ({ pin, onBack, onUpdatePin, onSavePin, onRemovePin
         <div className="p-2 md:p-6">
             <div className="flex justify-between items-center mb-6">
                 <button onClick={onBack} className="flex items-center gap-2 font-semibold text-secondary hover:text-primary"><Icon path={ICONS.back} /> Back</button>
-                <button onClick={handleNextPin} className="flex items-center gap-2 font-semibold text-secondary hover:text-primary">Next <Icon path={ICONS.next} /></button>
+                {allAvailablePins.length > 1 && (
+                  <button onClick={handleNextPin} className="flex items-center gap-2 font-semibold text-secondary hover:text-primary">Next <Icon path={ICONS.next} /></button>
+                )}
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div> {/* Visuals */}
@@ -97,7 +103,23 @@ export const PinDetailPage = ({ pin, onBack, onUpdatePin, onSavePin, onRemovePin
                     )}
                     <div className="mt-4"><h3 className="text-lg font-bold mb-3 text-primary flex items-center gap-2"><Icon path={ICONS.link} className="w-5 h-5"/>Image Link</h3><a href={`${PROXY_URL}${encodeURIComponent(pin.imgUrl)}`} target="_blank" rel="noopener noreferrer" className="text-foreground hover:underline break-all">{`${PROXY_URL}${encodeURIComponent(pin.imgUrl)}`}</a></div>
                     {!isEditing && pin.description && <p className="text-foreground mt-2 text-lg">{pin.description}</p>}
-                    {palette && <div className="mt-4"><h3 className="text-lg font-bold mb-3 text-primary">Palette</h3><div className="grid grid-cols-3 gap-4">{palette.map((c, i) => { const hex = rgbToHex(c[0],c[1],c[2]); const lum = (0.299*c[0]+0.587*c[1]+0.114*c[2])/255; return <div key={i} className={`h-24 rounded-lg border-2 border-primary flex flex-col items-center justify-center font-mono text-sm ${lum > 0.5 ? 'text-primary' : 'text-background'}`} style={{backgroundColor: hex}}><span className="font-bold">{hex.toUpperCase()}</span><span>RGB: {c[0]}, {c[1]}, {c[2]}</span></div>})}</div></div>}
+                    {palette && <div className="mt-4"><h3 className="text-lg font-bold mb-3 text-primary">Palette</h3><div className="flex items-center gap-4 overflow-x-auto pb-2">
+{palette.slice(0, 5).map((c, i) => { const hex = rgbToHex(c[0],c[1],c[2]); const lum = (0.299*c[0]+0.587*c[1]+0.114*c[2])/255; return <div key={i} className={`flex-shrink-0 w-16 h-16 rounded-full border-2 border-gray-300 ${lum > 0.5 ? 'text-primary' : 'text-background'}`} style={{backgroundColor: hex}}></div>})}
+{palette.length > 5 && (
+      <button
+        onClick={() => setShowAllPalettes(true)}
+        className="flex-shrink-0 px-6 py-3 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition duration-300 ease-in-out"
+      >
+        Show All Palettes
+      </button>
+  )}
+</div></div>}
+{showAllPalettes && palette && (
+    <ColorPaletteModal
+      palettes={palette.map(c => ({ hex: rgbToHex(c[0], c[1], c[2]), rgb: { r: c[0], g: c[1], b: c[2] } }))}
+      onClose={() => setShowAllPalettes(false)}
+    />
+  )}
                     {exifData && Object.entries(exifData).length > 1 && <div className="mt-8"><h3 className="text-lg font-bold mb-3 text-primary">Metadata</h3><div className="grid grid-cols-2 gap-2 text-sm text-primary">{Object.entries(exifData).map(([key, value]) => <p key={key}><strong>{key}:</strong> {typeof value === 'object' && value !== null ? JSON.stringify(value) : String(value)}</p>)}</div></div>}
                     {!isEditing && pin.location && <div className="mt-8"><h3 className="text-lg font-bold mb-3 text-primary">Map</h3><iframe className="w-full h-64 rounded-lg border-2 border-primary" loading="lazy" src={`https://maps.google.com/maps?q=${encodeURIComponent(pin.location)}&output=embed`}></iframe></div>}
                 </div>

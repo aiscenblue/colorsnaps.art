@@ -48,14 +48,13 @@ export const MainApp = ({ user, onLogout }: { user: User, onLogout: () => void }
       return newRandomPins;
     };
 
-    // Dispatch random pins to Redux store
     const newRandomPins = generateRandomPins(pinsPerPage);
-    dispatch(pinsSlice.actions.setRandomPins(newRandomPins));
-
     if (page === 1) { // Initial load
-      setDisplayedPins([...allPins, ...newRandomPins]);
+      dispatch(pinsSlice.actions.setRandomPins(newRandomPins));
+      setDisplayedPins([...allPins, ...newRandomPins]); // Update displayedPins immediately
     } else { // Subsequent loads
-      setDisplayedPins(prevPins => [...prevPins, ...newRandomPins]);
+      dispatch(pinsSlice.actions.addRandomPins(newRandomPins));
+      setDisplayedPins(prevPins => [...prevPins, ...newRandomPins]); // Append to displayedPins
     }
     setHasMore(true); // Always allow loading more random pins
 
@@ -86,8 +85,8 @@ export const MainApp = ({ user, onLogout }: { user: User, onLogout: () => void }
     };
   }, [hasMore, isClient]);
 
-  const { savedIds } = useSelector((state: RootState) => state.pins);
   const allRandomPins = useSelector((state: RootState) => state.pins.randomPins);
+  const { savedIds } = useSelector((state: RootState) => state.pins);
   const savedPinIds = new Set(savedIds);
 
   // Combine allPins and allRandomPins
@@ -115,10 +114,7 @@ export const MainApp = ({ user, onLogout }: { user: User, onLogout: () => void }
     else { console.warn("Google Maps API key missing."); checkAllLoaded(); }
   }, []);
   
-  const handleSelectPin = (pin: Pin) => { 
-    dispatch(uiSlice.actions.setSelectedPinId(pin.id)); 
-    router.push(`/details/${pin.id}`);
-  };
+  
   
   const addPin = (imgUrl: string) => {
     const newPin: Pin = { id: Date.now().toString(), imgUrl, creatorId: user.id, title: 'Untitled Pin', description: '', camera: '', location: '' };
@@ -194,13 +190,13 @@ export const MainApp = ({ user, onLogout }: { user: User, onLogout: () => void }
               />
               <button onClick={handleAddPin} className="bg-accent text-background font-semibold px-6 py-3 rounded-full">Snap</button>
             </div>
-            <PinGrid pins={displayedPins} onSelectPin={handleSelectPin} onRemovePin={undefined} />
+            <PinGrid pins={displayedPins} onRemovePin={undefined} />
           </>
         );
-        case 'myPins': return <MyPinsPage allPins={allPins} savedPinIds={savedPinIds} onSelectPin={handleSelectPin} onRemovePin={removePin} currentUserId={user.id} />;
+        case 'myPins': return <MyPinsPage allPins={allPins} savedPinIds={savedPinIds} onRemovePin={removePin} currentUserId={user.id} />;
         default: return (
           <>
-            <PinGrid pins={displayedPins} onSelectPin={handleSelectPin} onRemovePin={undefined} />
+            <PinGrid pins={displayedPins} onRemovePin={undefined} />
             {hasMore && (
               <div ref={loader} className="text-center py-4">
                 <p className="text-foreground">Loading more pins...</p>

@@ -3,7 +3,7 @@ import { PinGrid } from './PinGrid';
 import { PAGE_SIZE } from '@/lib/utils';
 import { Pin } from '@/lib/redux';
 
-export const MyPinsPage = ({ allPins, savedPinIds, onSelectPin, onRemovePin, currentUserId }: { allPins: Pin[], savedPinIds: Set<string>, onSelectPin: (pin: Pin) => void, onRemovePin: (pinId: string) => void, currentUserId: string }) => {
+export const MyPinsPage = ({ allPins, savedPinIds, onRemovePin, currentUserId }: { allPins: Pin[], savedPinIds: Set<string>, onRemovePin: (pinId: string) => void, currentUserId: string }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [filter, setFilter] = useState('all');
     const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
@@ -30,7 +30,7 @@ export const MyPinsPage = ({ allPins, savedPinIds, onSelectPin, onRemovePin, cur
             </div>
             {filteredPins.length > 0 ? (
                 <>
-                    <PinGrid pins={filteredPins.slice(0, visibleCount)} onSelectPin={onSelectPin} onRemovePin={onRemovePin} />
+                    <PinGrid pins={filteredPins.slice(0, visibleCount)} onRemovePin={onRemovePin} />
                     {visibleCount < filteredPins.length && <div className="text-center mt-8"><button onClick={() => setVisibleCount(c => c + PAGE_SIZE)} className="bg-accent text-background font-bold py-2 px-4 rounded-full">Show More</button></div>}
                 </>
             ) : <p className="text-center text-secondary mt-10">No pins found.</p>}

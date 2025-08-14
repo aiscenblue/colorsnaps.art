@@ -71,7 +71,8 @@ const pinsSlice = createSlice({
             const currentUser = DataService.getCurrentUser();
             if (currentUser) DataService.saveSavedPinIds(currentUser.id, state.savedIds);
         },
-        setRandomPins: (state, action: PayloadAction<Pin[]>) => { state.randomPins = action.payload; }
+        setRandomPins: (state, action: PayloadAction<Pin[]>) => { state.randomPins = action.payload; },
+        addRandomPins: (state, action: PayloadAction<Pin[]>) => { state.randomPins.push(...action.payload); }
     }
 });
 

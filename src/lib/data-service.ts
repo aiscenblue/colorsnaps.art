@@ -1,6 +1,6 @@
-import 'server-only';
-import redisClient from '@/lib/redis';
-import { Pin, User } from '@/lib/redux';
+import "server-only";
+import redisClient from "@/lib/redis";
+import { Pin, User } from "@/lib/redux";
 
 const connectRedis = async () => {
   // ioredis automatically connects, so no explicit connect call needed here
@@ -129,6 +129,13 @@ const DataService = {
         await connectRedis();
         await redisClient.del(`pin:${pinId}`);
     },
+    clearAllPins: async (): Promise<void> => {
+        await connectRedis();
+        const pinKeys = await redisClient.keys('pin:*');
+        if (pinKeys.length > 0) {
+            await redisClient.del(...pinKeys);
+        }
+    },
     updatePin: async (pin: Pin): Promise<void> => {
         await connectRedis();
         await redisClient.set(`pin:${pin.id}`, JSON.stringify(pin));
@@ -136,3 +143,4 @@ const DataService = {
 };
 
 export default DataService;
+

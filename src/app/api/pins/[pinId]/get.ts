@@ -9,5 +9,8 @@ export async function GET(
   if (pin) {
     return NextResponse.json(pin);
   }
-  return NextResponse.json({ error: "Pin not found" }, { status: 404 });
+  return NextResponse.json(
+    { error: `Pin id ${params.pinId} not found` },
+    { status: 404 },
+  );
 }

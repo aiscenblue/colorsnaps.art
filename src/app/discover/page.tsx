@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
 import { Pin } from '@/lib/redux';
+import ColorPaletteLoader from '@/app/components/ColorPaletteLoader'; // Import the loader component
 
 export default function DiscoverPage() {
   const [images, setImages] = useState<Pin[]>([]);
@@ -30,7 +31,7 @@ export default function DiscoverPage() {
   }, []);
 
   if (loading) {
-    return <div className="flex justify-center items-center h-screen text-lg">Loading images...</div>;
+    return <ColorPaletteLoader />; // Render the loader component
   }
 
   if (error) {

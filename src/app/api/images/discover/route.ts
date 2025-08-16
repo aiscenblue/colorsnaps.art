@@ -26,6 +26,7 @@ interface UnsplashImage {
 
 export async function GET() {
   try {
+    await DataService.clearAllPins(); // Clear existing pins
     const unsplashAccessKey = process.env.UNSPLASH_ACCESS_KEY;
 
     if (!unsplashAccessKey) {

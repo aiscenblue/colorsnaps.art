@@ -1,7 +1,5 @@
 import { createSlice, configureStore, createSelector, PayloadAction } from '@reduxjs/toolkit';
 import { Provider, useSelector, useDispatch } from 'react-redux';
-import DataService from './data-service';
-import { decrypt } from './utils';
 
 interface Pin {
     id: string;
@@ -52,29 +50,20 @@ const pinsSlice = createSlice({
         setPins: (state, action: PayloadAction<Pin[]>) => { state.all = action.payload; },
         addPin: (state, action: PayloadAction<Pin>) => {
             state.all.unshift(action.payload);
-            if (action.payload.creatorId !== 'guest') {
-                DataService.savePins(state.all);
-            }
         },
         updatePin: (state, action: PayloadAction<Pin>) => {
             const index = state.all.findIndex(p => p.id === action.payload.id);
             if (index !== -1) state.all[index] = action.payload;
-            DataService.savePins(state.all);
         },
         removePin: (state, action: PayloadAction<string>) => {
             state.all = state.all.filter(p => p.id !== action.payload);
-            DataService.savePins(state.all);
         },
         setSavedPinIds: (state, action: PayloadAction<string[]>) => { state.savedIds = action.payload; },
         addSavedPinId: (state, action: PayloadAction<string>) => {
             state.savedIds.push(action.payload);
-            const currentUser = DataService.getCurrentUser();
-            if (currentUser) DataService.saveSavedPinIds(currentUser.id, state.savedIds);
         },
         removeSavedPinId: (state, action: PayloadAction<string>) => {
             state.savedIds = state.savedIds.filter(id => id !== action.payload);
-            const currentUser = DataService.getCurrentUser();
-            if (currentUser) DataService.saveSavedPinIds(currentUser.id, state.savedIds);
         },
         setRandomPins: (state, action: PayloadAction<Pin[]>) => { state.randomPins = action.payload; },
         addRandomPins: (state, action: PayloadAction<Pin[]>) => { state.randomPins.push(...action.payload); }
@@ -112,8 +101,8 @@ export const store = configureStore({
 const selectPins = (state: RootState) => state.pins.all;
 const selectCurrentUser = (state: RootState) => state.auth.currentUser;
 
-export const selectDecryptedPins = createSelector([selectPins], (pins) => pins.map((pin: Pin) => ({...pin, title: decrypt(pin.title), description: decrypt(pin.description), camera: decrypt(pin.camera), location: decrypt(pin.location) })));
-export const selectDecryptedCurrentUser = createSelector([selectCurrentUser], (user: User | null) => user ? { ...user, username: decrypt(user.username), email: decrypt(user.email) } : null);
+export const selectDecryptedPins = selectPins;
+export const selectDecryptedCurrentUser = selectCurrentUser;
 
 export type { RootState, Pin, User };
 export { Provider, useSelector, useDispatch, pinsSlice, authSlice, uiSlice };

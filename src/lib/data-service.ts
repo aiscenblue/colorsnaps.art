@@ -1,47 +1,114 @@
-import { Pin } from '@/lib/redux';
-import { encrypt, decrypt } from './utils';
+import 'server-only';
+import { createClient } from 'redis';
+import { Pin, User } from '@/lib/redux';
 
-// --- MOCK DATA SERVICE ---
+const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
+
+const redisClient = createClient({
+  url: redisUrl
+});
+
+redisClient.on('error', (err) => console.log('Redis Client Error', err));
+
+const connectRedis = async () => {
+  if (!redisClient.isOpen) {
+    await redisClient.connect();
+  }
+};
+
+connectRedis();
+
 const DataService = {
-    register: (username: string, email: string, pass: string) => {
-        const usersByEmail = JSON.parse(localStorage.getItem('pins_users_by_email') || '{}');
-        const usersByUsername = JSON.parse(localStorage.getItem('pins_users_by_username') || '{}');
-        const encryptedEmail = encrypt(email);
-        if (encryptedEmail && usersByEmail[encryptedEmail]) return { success: false, message: 'Email already exists.' };
-        const encryptedUsername = encrypt(username);
-        if (encryptedUsername && usersByUsername[encryptedUsername]) return { success: false, message: 'Username taken.' };
+    register: async (username: string, email: string, pass: string): Promise<{ success: boolean, message?: string, user?: User }> => {
+        await connectRedis();
+        const userByEmail = await redisClient.hGet('users_by_email', email);
+        if (userByEmail) return { success: false, message: 'Email already exists.' };
+        const userByUsername = await redisClient.hGet('users_by_username', username);
+        if (userByUsername) return { success: false, message: 'Username taken.' };
+
         const userId = `user_${Date.now()}`;
-        const newUser = { id: userId, email: encryptedEmail, username: encryptedUsername, pass: encrypt(pass) };
-        if (encryptedEmail) usersByEmail[encryptedEmail] = newUser;
-        if (encryptedUsername) usersByUsername[encryptedUsername] = newUser;
-        localStorage.setItem('pins_users_by_email', JSON.stringify(usersByEmail));
-        localStorage.setItem('pins_users_by_username', JSON.stringify(usersByUsername));
-        return DataService.login(email, pass);
+        const newUser: User = { id: userId, email, username };
+        const userWithPass = { ...newUser, pass };
+
+        await redisClient.hSet('users_by_email', email, JSON.stringify(userWithPass));
+        await redisClient.hSet('users_by_username', username, JSON.stringify(userWithPass));
+        await redisClient.hSet('users', userId, JSON.stringify(newUser));
+
+        return { success: true, user: newUser };
     },
-    login: (identifier: string, pass: string) => {
-        const usersByEmail = JSON.parse(localStorage.getItem('pins_users_by_email') || '{}');
-        const usersByUsername = JSON.parse(localStorage.getItem('pins_users_by_username') || '{}');
-        const encryptedIdentifier = encrypt(identifier);
-        const user = encryptedIdentifier && (usersByEmail[encryptedIdentifier] || usersByUsername[encryptedIdentifier]);
-        if (user && decrypt(user.pass) === pass) {
-            const currentUser = { id: user.id, email: decrypt(user.email), username: decrypt(user.username) };
-            localStorage.setItem('pins_currentUser', JSON.stringify(currentUser));
-            return { success: true, user: currentUser };
+    login: async (identifier: string, pass: string): Promise<{ success: boolean, message?: string, token?: string }> => {
+        await connectRedis();
+        let userWithPassJson = await redisClient.hGet('users_by_email', identifier);
+        if (!userWithPassJson) {
+            userWithPassJson = await redisClient.hGet('users_by_username', identifier);
+        }
+
+        if (userWithPassJson) {
+            const userWithPass = JSON.parse(userWithPassJson);
+            if (userWithPass.pass === pass) {
+                const token = `token_${Date.now()}`;
+                await redisClient.hSet('sessions', token, userWithPass.id);
+                return { success: true, token };
+            }
         }
         return { success: false, message: 'Invalid credentials.' };
     },
-    logout: () => localStorage.removeItem('pins_currentUser'),
-    getCurrentUser: () => {
-        const user = localStorage.getItem('pins_currentUser');
-        return user ? JSON.parse(user) : null;
+    getUserFromToken: async (token: string): Promise<User | null> => {
+        await connectRedis();
+        const userId = await redisClient.hGet('sessions', token);
+        if (userId) {
+            return await DataService.getCurrentUser(userId);
+        }
+        return null;
     },
-    getPins: (): Pin[] => JSON.parse(localStorage.getItem('pins_all') || '[]'),
-    savePins: (pins: Pin[]) => localStorage.setItem('pins_all', JSON.stringify(pins)),
-    getSavedPinIds: (userId: string) => new Set<string>(JSON.parse(localStorage.getItem(`pins_saved_${userId}`) || '[]')),
-    saveSavedPinIds: (userId: string, ids: string[]) => localStorage.setItem(`pins_saved_${userId}`, JSON.stringify(Array.from(ids))),
-    getPinById: (pinId: string): Pin | undefined => {
-        const allPins = JSON.parse(localStorage.getItem('pins_all') || '[]');
-        return allPins.find((p: Pin) => p.id === pinId);
+    logout: async (): Promise<void> => {
+        // No server-side logout needed for this implementation
+    },
+    getCurrentUser: async (userId: string): Promise<User | null> => {
+        await connectRedis();
+        const userJson = await redisClient.hGet('users', userId);
+        return userJson ? JSON.parse(userJson) : null;
+    },
+    getPins: async (): Promise<Pin[]> => {
+        await connectRedis();
+        const pinKeys = await redisClient.keys('pin:*');
+        if (pinKeys.length === 0) return [];
+        const pins = await redisClient.mGet(pinKeys);
+        return pins.map(p => JSON.parse(p!));
+    },
+    savePins: async (pins: Pin[]) => {
+        await connectRedis();
+        const multi = redisClient.multi();
+        for (const pin of pins) {
+            multi.set(`pin:${pin.id}`, JSON.stringify(pin));
+        }
+        await multi.exec();
+    },
+    getSavedPinIds: async (userId: string): Promise<Set<string>> => {
+        await connectRedis();
+        const savedIds = await redisClient.sMembers(`saved_pins:${userId}`);
+        return new Set(savedIds);
+    },
+    saveSavedPinIds: async (userId: string, ids: string[]) => {
+        await connectRedis();
+        const key = `saved_pins:${userId}`;
+        await redisClient.del(key);
+        if (ids.length > 0) {
+            await redisClient.sAdd(key, ids);
+        }
+    },
+    getPinById: async (pinId: string): Promise<Pin | undefined> => {
+        await connectRedis();
+        const pin = await redisClient.get(`pin:${pinId}`);
+        return pin ? JSON.parse(pin) : undefined;
+    },
+    removePin: async (pinId: string): Promise<void> => {
+        await connectRedis();
+        await redisClient.del(`pin:${pinId}`);
+    },
+    updatePin: async (pin: Pin): Promise<void> => {
+        await connectRedis();
+        await redisClient.set(`pin:${pin.id}`, JSON.stringify(pin));
     },
 };
 

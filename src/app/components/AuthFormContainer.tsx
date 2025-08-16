@@ -2,11 +2,10 @@
 import React, { useState, useEffect } from 'react';
 import { Icon } from './Icon';
 import { ICONS } from '@/lib/utils';
-import DataService from '@/lib/data-service';
 
 import { User } from '@/lib/redux';
 
-export const AuthFormContainer = ({ onLoginSuccess }: { onLoginSuccess: (user: User) => void }) => {
+export const AuthFormContainer = ({ onLoginSuccess }: { onLoginSuccess: (token: string) => void }) => {
     const [mode, setMode] = useState('login');
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
@@ -28,7 +27,7 @@ export const AuthFormContainer = ({ onLoginSuccess }: { onLoginSuccess: (user: U
         if (mode === 'register' && hasMounted) setCaptchaNums({ a: Math.ceil(Math.random() * 10), b: Math.ceil(Math.random() * 10) });
     }, [mode, hasMounted]);
 
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setError(''); setMessage('');
         let result;
@@ -40,14 +39,28 @@ export const AuthFormContainer = ({ onLoginSuccess }: { onLoginSuccess: (user: U
             }
             if (password !== confirmPassword) { setError("Passwords do not match."); return; }
             if (parseInt(captcha) !== captchaNums.a + captchaNums.b) { setError("Incorrect captcha answer."); return; }
-            result = DataService.register(username, email, password);
+            const response = await fetch('/api/auth/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ username, email, password })
+            });
+            result = await response.json();
         } else if (mode === 'login') {
-            result = DataService.login(email, password);
+            const response = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ identifier: email, password })
+            });
+            result = await response.json();
         } else {
             setMessage('Password reset link sent (simulation).'); return;
         }
-        if (result.success && 'user' in result) onLoginSuccess(result.user);
-        else if ('message' in result) setError(result.message || 'An unknown error occurred');
+        if (result.success && result.token) onLoginSuccess(result.token);
+        else if (result.message) setError(result.message);
     };
 
     return (

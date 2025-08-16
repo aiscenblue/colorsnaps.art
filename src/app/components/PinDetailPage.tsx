@@ -190,9 +190,9 @@ export const PinDetailPage = ({
                 {palette.length > 5 && (
                   <button
                     onClick={() => setShowAllPalettes(true)}
-                    className="flex-shrink-0 px-6 py-3 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition duration-300 ease-in-out"
+                    className="flex-shrink-0 w-16 h-16 rounded-full bg-blue-600 text-white flex items-center justify-center shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition duration-300 ease-in-out"
                   >
-                    Show All Palettes
+                    <Icon path={ICONS.eye} className="w-8 h-8" />
                   </button>
                 )}
               </div>

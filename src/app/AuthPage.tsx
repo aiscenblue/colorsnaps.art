@@ -5,7 +5,7 @@ import { AuthFormContainer } from '@/app/components/AuthFormContainer';
 
 import { User } from '@/lib/redux';
 
-export const AuthPage = ({ onLoginSuccess }: { onLoginSuccess: (user: User) => void }) => {
+export const AuthPage = ({ onLoginSuccess }: { onLoginSuccess: (token: string) => void }) => {
     const router = useRouter();
 
     useEffect(() => {

@@ -11,10 +11,12 @@ import { PinGrid } from "@/app/components/PinGrid";
 import { MyPinsPage } from "@/app/components/MyPinsPage";
 import { Header } from "@/app/components/Header";
 import { useRouter, usePathname } from "next/navigation";
-import { PinDetailPage } from "@/app/components/PinDetailPage";
 import { AuthPage } from "@/app/AuthPage";
-import { PinNotFound } from "@/app/components/PinNotFound";
-import DataService from "@/lib/data-service";
+import dynamic from 'next/dynamic';
+
+const ColorPaletteLoader = dynamic(() => import('./components/ColorPaletteLoader'), { ssr: false });
+const DynamicPinInput = dynamic(() => import('./components/PinInput'), { ssr: false });
+import { PinDetails } from './components/PinDetails';
 
 export const MainApp = ({
   user,
@@ -23,60 +25,47 @@ export const MainApp = ({
 }: {
   user: User | null;
   onLogout: () => void;
-  onLoginSuccess: (user: User) => void;
+  onLoginSuccess: (token: string) => void;
 }) => {
   const dispatch = useDispatch();
   const router = useRouter();
   const allPins = useSelector(selectDecryptedPins);
   const [page, setPage] = useState(1);
-  const INITIAL_PINS_COUNT = 50;
   const pinsPerPage = 10;
   const [displayedPins, setDisplayedPins] = useState<Pin[]>(allPins);
-  const [hasMore, setHasMore] = useState(true);
   const [scriptsLoaded, setScriptsLoaded] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Effect to load initial pins and handle infinite scrolling
   useEffect(() => {
-    const generateRandomPins = (count: number) => {
-      const newRandomPins: Pin[] = [];
-      for (let i = 0; i < count; i++) {
-        const id = `random-${Date.now()}-${Math.floor(Math.random() * 100000)}`; // Ensure unique ID
-        const width = Math.floor(Math.random() * (500 - 300 + 1)) + 300;
-        const height = Math.floor(Math.random() * (700 - 400 + 1)) + 400;
-        const imgUrl = `https://picsum.photos/${width}/${height}?random=${id}`;
-        newRandomPins.push({
-          id,
-          imgUrl,
-          creatorId: "random",
-          title: `Random Image ${id}`,
-          description: "A random image from Lorem Picsum.",
-          camera: "",
-          location: "",
-        });
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        const response = await fetch('/api/pins');
+        const pins = await response.json();
+        console.log("Fetched pins:", pins);
+        dispatch(pinsSlice.actions.setPins(pins));
+        if (user) {
+          const token = localStorage.getItem('pins_token');
+          if (token) {
+              const response = await fetch('/api/saved-pins', {
+                  headers: {
+                      'Authorization': token
+                  }
+              });
+              const savedIds = await response.json();
+              dispatch(pinsSlice.actions.setSavedPinIds(savedIds));
+          }
+        }
+        setDisplayedPins(pins); // Set all pins directly
+        setHasMore(false); // No more pins to load, so set to false
+      } catch (error) {
+        console.error("Error fetching pins:", error);
+      } finally {
+        setIsLoading(false); // Ensure loader is always removed
       }
-      return newRandomPins;
     };
-
-    if (allPins.length === 0) {
-      const initialRandomPins = generateRandomPins(INITIAL_PINS_COUNT);
-      dispatch(pinsSlice.actions.setRandomPins(initialRandomPins));
-      setDisplayedPins(initialRandomPins);
-    }
-
-    if (page > 1) {
-      // Subsequent loads
-      const newRandomPins = generateRandomPins(pinsPerPage);
-      dispatch(pinsSlice.actions.addRandomPins(newRandomPins));
-      setDisplayedPins((prevPins) => [...prevPins, ...newRandomPins]); // Append to displayedPins
-    } else if (page === 1 && displayedPins.length < INITIAL_PINS_COUNT) {
-      const initialRandomPins = generateRandomPins(
-        INITIAL_PINS_COUNT - displayedPins.length,
-      );
-      dispatch(pinsSlice.actions.setRandomPins(initialRandomPins));
-      setDisplayedPins((prevPins) => [...prevPins, ...initialRandomPins]);
-    }
-    setHasMore(true); // Always allow loading more random pins
-  }, [page, pinsPerPage, dispatch, displayedPins.length, allPins.length]);
+    fetchData();
+  }, [dispatch, user, page]);
 
   const allRandomPins = useSelector(
     (state: RootState) => state.pins.randomPins,
@@ -145,7 +134,7 @@ export const MainApp = ({
     router.push("/"); // Redirect to root, which will show AuthPage if not logged in
   };
 
-  const addPin = (imgUrl: string) => {
+  const addPin = async (imgUrl: string) => {
     const newPin: Pin = {
       id: Date.now().toString(),
       imgUrl,
@@ -154,21 +143,38 @@ export const MainApp = ({
       description: "",
       camera: "",
       location: "",
-    }; // Set creatorId to 'guest' if not logged in
+    };
     dispatch(pinsSlice.actions.addPin(newPin));
-    router.push(`/details/${newPin.id}`); // Redirect to the details page of the new pin
+    await fetch('/api/pins', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify([newPin])
+    });
+    router.push(`/details/${newPin.id}`);
   };
 
-  const removePin = (pinId: string) => {
-    if (!user) {
-      // If user is not logged in, they cannot remove pins they created.
-      // However, they can still remove saved pins.
-      dispatch(pinsSlice.actions.removeSavedPinId(pinId));
-      return;
-    }
-    if (allPins.find((p) => p.id === pinId)?.creatorId === user.id)
+  const removePin = async (pinId: string) => {
+    const newSavedIds = new Set(savedIds.filter(id => id !== pinId));
+    if (user && allPins.find((p) => p.id === pinId)?.creatorId === user.id) {
       dispatch(pinsSlice.actions.removePin(pinId));
-    dispatch(pinsSlice.actions.removeSavedPinId(pinId));
+      await fetch(`/api/pins/${pinId}`, { method: 'DELETE' });
+    }
+    dispatch(pinsSlice.actions.setSavedPinIds(Array.from(newSavedIds)));
+    if(user) {
+        const token = localStorage.getItem('pins_token');
+        if (token) {
+            await fetch('/api/saved-pins', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': token
+                },
+                body: JSON.stringify(Array.from(newSavedIds))
+            });
+        }
+    }
   };
 
   const [url, setUrl] = React.useState("");
@@ -184,84 +190,18 @@ export const MainApp = ({
   const pinIdFromUrl = isDetailsPage ? pathname.split("/").pop() : undefined;
 
   const renderView = () => {
+    if (isLoading) {
+      return <ColorPaletteLoader />;
+    }
+
     if (isDetailsPage && pinIdFromUrl) {
-      let selectedPin = [...allPins, ...allRandomPins].find(
-        (p) => p.id === pinIdFromUrl,
-      );
-      const isSaved = savedIds.includes(pinIdFromUrl);
-
-      if (!selectedPin) {
-        const pinFromDataService = DataService.getPinById(pinIdFromUrl);
-        if (pinFromDataService) {
-          selectedPin = pinFromDataService;
-        } else {
-          const newPin: Pin = {
-            id: pinIdFromUrl,
-            imgUrl: `https://picsum.photos/seed/${pinIdFromUrl}/400/600`,
-            creatorId: "random",
-            title: `Random Image ${pinIdFromUrl}`,
-            description: "A random image from Lorem Picsum.",
-            camera: "",
-            location: "",
-          };
-          dispatch(pinsSlice.actions.addPin(newPin));
-          selectedPin = newPin;
-        }
-      }
-
-      const handleUpdatePin = (updatedPin: Pin) => {
-        dispatch(pinsSlice.actions.updatePin(updatedPin));
-      };
-
-      const handleSavePin = (pinId: string) => {
-        dispatch(pinsSlice.actions.addSavedPinId(pinId));
-      };
-
-      const handleRemovePin = (pinId: string) => {
-        dispatch(pinsSlice.actions.removePin(pinId));
-        dispatch(pinsSlice.actions.removeSavedPinId(pinId));
-      };
-
-      if (!selectedPin) {
-        return <PinNotFound />;
-      }
-
-      return (
-        <PinDetailPage
-          pin={selectedPin}
-          onBack={() => router.back()}
-          onUpdatePin={handleUpdatePin}
-          onSavePin={handleSavePin}
-          onRemovePin={handleRemovePin}
-          isSaved={isSaved}
-          scriptsLoaded={scriptsLoaded}
-          currentUser={user}
-          allAvailablePins={allAvailablePins}
-          onLoginRedirect={handleLoginRedirect}
-        />
-      );
+      return <PinDetails pinId={pinIdFromUrl} user={user} allAvailablePins={allAvailablePins} onLoginRedirect={handleLoginRedirect} scriptsLoaded={scriptsLoaded} />;
     }
 
     switch (view) {
       case "discover":
         return (
           <>
-            <div className="flex gap-2 mb-4">
-              <input
-                type="text"
-                value={url}
-                onChange={(e) => setUrl(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleAddPin()}
-                placeholder="Paste an image URL to create a new snap..."
-                className="w-full p-3 border-2 border-primary rounded-full bg-white"
-              />
-              <button
-                onClick={handleAddPin}
-                className="bg-accent text-background font-semibold px-6 py-3 rounded-full"
-              >
-                Snap
-              </button>
-            </div>
             <PinGrid pins={displayedPins} onRemovePin={undefined} />
           </>
         );
@@ -280,16 +220,6 @@ export const MainApp = ({
         return (
           <>
             <PinGrid pins={displayedPins} onRemovePin={undefined} />
-            {hasMore && (
-              <div className="text-center py-4">
-                <button
-                  onClick={() => setPage((prevPage) => prevPage + 1)}
-                  className="bg-accent text-background font-bold py-2 px-4 rounded-full"
-                >
-                  Load More
-                </button>
-              </div>
-            )}
           </>
         );
     }
@@ -306,8 +236,11 @@ export const MainApp = ({
         onLogout={onLogout}
         isLoggedIn={!!user}
       />
-      <main className="px-4 py-6 sm:px-6 lg:px-8">{renderView()}</main>
+      <main className="px-4 py-6 sm:px-6 lg:px-8">
+        {/* Pin Input always visible */}
+        <DynamicPinInput url={url} setUrl={setUrl} handleAddPin={handleAddPin} />
+        {renderView()}
+      </main>
     </div>
   );
 };
-

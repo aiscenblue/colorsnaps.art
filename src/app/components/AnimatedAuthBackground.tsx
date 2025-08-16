@@ -10,9 +10,16 @@ export const AnimatedAuthBackground = React.memo(function AnimatedAuthBackground
         { type: 'img', value: 'https://images.unsplash.com/photo-1559128010-4c1ad8e1b2bf' },
         { type: 'palette', value: ['#003049', '#d62828', '#f77f00', '#fcbf49', '#eae2b7'] },
     ];
-    const [grid, setGrid] = useState(() => Array(16).fill(null).map((_, i) => ({ id: i, item: backgroundItems[i % backgroundItems.length], isVisible: false }))); // Initialize to false
+    const [grid, setGrid] = useState(() => Array(16).fill(null).map((_, i) => ({ id: i, item: backgroundItems[i % backgroundItems.length], isVisible: false })));
+    const [hasMounted, setHasMounted] = useState(false);
+
     useEffect(() => {
-        // Initialize random visibility on client-side only
+        setHasMounted(true);
+    }, []);
+
+    useEffect(() => {
+        if (!hasMounted) return;
+
         setGrid(currentGrid => {
             return currentGrid.map(cell => ({ ...cell, isVisible: Math.random() > 0.6 }));
         });
@@ -27,8 +34,9 @@ export const AnimatedAuthBackground = React.memo(function AnimatedAuthBackground
                 return newGrid;
             });
         }, 2000);
+
         return () => clearInterval(timer);
-    }, []);
+    }, [hasMounted]);
     return (
         <div className="absolute inset-0 z-0 grid grid-cols-4 grid-rows-4 gap-4 p-4 overflow-hidden">
             {grid.map(cell => (

@@ -2,7 +2,6 @@ import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectDecryptedCurrentUser, authSlice, pinsSlice, User } from '@/lib/redux';
 import DataService from '@/lib/data-service';
-import { AuthPage } from '@/app/AuthPage';
 import { MainApp } from '@/app/MainApp';
 
 export const AppContainer = () => {

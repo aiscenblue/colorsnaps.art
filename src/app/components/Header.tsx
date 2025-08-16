@@ -2,7 +2,7 @@ import React from 'react';
 import { Icon } from './Icon';
 import { ICONS } from '@/lib/utils';
 
-export const Header = ({ onAddPin, activeView, onViewChange, onLogout, isLoggedIn }: { onAddPin: (imgUrl: string) => void, activeView: string, onViewChange: (view: string) => void, onLogout: () => void, isLoggedIn: boolean }) => {
+export const Header = ({ activeView, onViewChange, onLogout, isLoggedIn }: { activeView: string, onViewChange: (view: string) => void, onLogout: () => void, isLoggedIn: boolean }) => {
   return (
     <header className="p-4 bg-background/80 backdrop-blur-lg border-b-2 border-primary sticky top-0 z-20">
       <div className="flex items-center gap-4 mb-4">

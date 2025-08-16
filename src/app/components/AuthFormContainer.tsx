@@ -18,10 +18,15 @@ export const AuthFormContainer = ({ onLoginSuccess }: { onLoginSuccess: (user: U
     const [message, setMessage] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [hasMounted, setHasMounted] = useState(false);
 
     useEffect(() => {
-        if (mode === 'register') setCaptchaNums({ a: Math.ceil(Math.random() * 10), b: Math.ceil(Math.random() * 10) });
-    }, [mode]);
+        setHasMounted(true);
+    }, []);
+
+    useEffect(() => {
+        if (mode === 'register' && hasMounted) setCaptchaNums({ a: Math.ceil(Math.random() * 10), b: Math.ceil(Math.random() * 10) });
+    }, [mode, hasMounted]);
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -54,7 +59,7 @@ export const AuthFormContainer = ({ onLoginSuccess }: { onLoginSuccess: (user: U
                 {mode !== 'forgot' && <div className="relative"><input type={showPassword ? 'text' : 'password'} placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} required className="w-full px-4 py-3 border-2 border-primary rounded-md text-accent" /><button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-0 px-3 flex items-center text-secondary"><Icon path={showPassword ? ICONS.eyeOff : ICONS.eye} /></button></div>}
                 {mode === 'register' && <div className="relative"><input type={showConfirmPassword ? 'text' : 'password'} placeholder="Confirm Password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} required className="w-full px-4 py-3 border-2 border-primary rounded-md text-accent" /><button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute inset-y-0 right-0 px-3 flex items-center text-secondary"><Icon path={showConfirmPassword ? ICONS.eyeOff : ICONS.eye} /></button></div>}
                 {mode === 'register' && <p className="text-xs text-secondary">Password must be 8+ characters and include an uppercase, lowercase, and number.</p>}
-                {mode === 'register' && <div className="flex items-center gap-4"><label className="font-semibold text-accent">{`${captchaNums.a} + ${captchaNums.b} = ?`}</label><input type="number" placeholder="Answer" value={captcha} onChange={e => setCaptcha(e.target.value)} required className="w-full px-4 py-3 border-2 border-primary rounded-md text-accent" /></div>}
+                {mode === 'register' && hasMounted && <div className="flex items-center gap-4"><label className="font-semibold text-accent">{`${captchaNums.a} + ${captchaNums.b} = ?`}</label><input type="number" placeholder="Answer" value={captcha} onChange={e => setCaptcha(e.target.value)} required className="w-full px-4 py-3 border-2 border-primary rounded-md text-accent" /></div>}
                 {error && <p className="text-red-600 text-center font-semibold">{error}</p>}
                 {message && <p className="text-green-600 text-center font-semibold">{message}</p>}
                 <button type="submit" className="w-full bg-accent text-background font-bold py-3 rounded-md hover:bg-primary-dark mt-4">{mode === 'login' ? 'Login' : mode === 'register' ? 'Register' : 'Send Reset Link'}</button>

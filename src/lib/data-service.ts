@@ -39,6 +39,10 @@ const DataService = {
     savePins: (pins: Pin[]) => localStorage.setItem('pins_all', JSON.stringify(pins)),
     getSavedPinIds: (userId: string) => new Set<string>(JSON.parse(localStorage.getItem(`pins_saved_${userId}`) || '[]')),
     saveSavedPinIds: (userId: string, ids: string[]) => localStorage.setItem(`pins_saved_${userId}`, JSON.stringify(Array.from(ids))),
+    getPinById: (pinId: string): Pin | undefined => {
+        const allPins = JSON.parse(localStorage.getItem('pins_all') || '[]');
+        return allPins.find((p: Pin) => p.id === pinId);
+    },
 };
 
 export default DataService;

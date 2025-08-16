@@ -50,13 +50,13 @@ export default function DiscoverPage() {
   }
 
   return (
-    <div className="container mx-auto p-4">
+    <div className="container mx-auto p-0 sm:p-4">
       {/* Removed: <h1 className="text-3xl font-bold text-center mb-8">Discover New Images</h1> */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-0 sm:gap-4">
         {images.map((pin) => (
           <div
             key={pin.id}
-            className="bg-gray-900 rounded-lg shadow-md overflow-hidden transform transition duration-300 hover:scale-105 cursor-pointer text-white"
+            className="bg-gray-900 shadow-md overflow-hidden transform transition duration-300 hover:scale-105 cursor-pointer text-white"
             onClick={() => router.push(`/details/${pin.id}`)}
           >
             <div className="relative w-full h-64">
@@ -65,10 +65,10 @@ export default function DiscoverPage() {
                 alt={pin.image.alt}
                 layout="fill"
                 objectFit="cover"
-                className="rounded-t-lg"
+                className=""
               />
             </div>
-            <div className="p-4 bg-gray-800 rounded-b-lg">
+            <div className="p-4 bg-gray-800">
               <p className="text-white font-semibold text-lg truncate">{pin.title}</p>
               <div className="flex items-center mt-2">
                 <p className="text-gray-300 text-sm">By {pin.postedBy.userName}</p>

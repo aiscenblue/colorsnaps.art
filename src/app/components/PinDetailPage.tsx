@@ -54,7 +54,6 @@ export const PinDetailPage = ({
   const [exifData, setExifData] = useState<Record<string, string> | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editablePin, setEditablePin] = useState(pin);
-  
 
   const getImageDimensions = (url: string) => {
     const regex = /picsum\.photos\/(\d+)\/(\d+)/;
@@ -86,8 +85,6 @@ export const PinDetailPage = ({
         });
     };
   }, [pin, scriptsLoaded]);
-
-  
 
   const handleSave = () => {
     onUpdatePin(editablePin);
@@ -135,8 +132,8 @@ export const PinDetailPage = ({
               />
             </div>
           ) : (
-            <>{
-              isLoading && ( // Show placeholder while loading
+            <>
+              {isLoading && ( // Show placeholder while loading
                 <div className="absolute inset-0 flex items-center justify-center bg-secondary rounded-lg animate-pulse">
                   <Icon
                     path={ICONS.link}
@@ -167,14 +164,28 @@ export const PinDetailPage = ({
               target="_blank"
               rel="noopener noreferrer"
               className="text-foreground hover:underline break-all"
-            >{pin.image.url}</a>
+            >
+              {pin.image.url} ({pin.image.alt})
+            </a>
+          </div>
+          <div className="mt-4">
+            <h3 className="text-lg font-bold mb-3 text-primary flex items-center gap-2">
+              <Icon path={ICONS.dimensions} className="w-5 h-5" />
+              Image Dimensions
+            </h3>
+            <p className="text-foreground">Width: {pin.image.width}px</p>
+            <p className="text-foreground">Height: {pin.image.height}px</p>
           </div>
           {!isEditing && pin.about && (
-            <p className="text-white mt-2 text-lg bg-gray-800 p-2 rounded">{pin.about}</p>
+            <p className="text-white mt-2 text-lg bg-gray-800 p-2 rounded">
+              {pin.about}
+            </p>
           )}
           {palette && (
             <div className="mt-4">
-              <h3 className="text-lg font-bold mb-3 text-primary">Full Color Palette</h3>
+              <h3 className="text-lg font-bold mb-3 text-primary">
+                Full Color Palette
+              </h3>
               <div className="grid grid-cols-3 gap-4 max-h-96 overflow-y-auto">
                 {palette.map((c, i) => {
                   const hex = rgbToHex(c[0], c[1], c[2]);
@@ -201,31 +212,39 @@ export const PinDetailPage = ({
             <div className="mt-8">
               <h3 className="text-lg font-bold mb-3 text-primary">Metadata</h3>
               <div className="grid grid-cols-2 gap-2 text-sm text-primary">
-                {Object.entries(exifData).filter(([key]) => key !== 'UserComment' && key !== 'thumbnail').map(([key, value]) => (
-                  <p key={key}>
-                    <strong>{key}:</strong>{" "}
-                    {typeof value === "object" && value !== null
-                      ? JSON.stringify(value)
-                      : String(value)}
-                  </p>
-                ))}
+                {Object.entries(exifData)
+                  .filter(
+                    ([key]) => key !== "UserComment" && key !== "thumbnail",
+                  )
+                  .map(([key, value]) => (
+                    <p key={key}>
+                      <strong>{key}:</strong>{" "}
+                      {typeof value === "object" && value !== null
+                        ? JSON.stringify(value)
+                        : String(value)}
+                    </p>
+                  ))}
               </div>
-            </div>
-          )}
-          {!isEditing && pin.postedBy.userName && (
-            <div className="mt-8">
-              <h3 className="text-lg font-bold mb-3 text-primary">Posted By</h3>
-              <p className="mt-1 text-primary">{pin.postedBy.userName}</p>
             </div>
           )}
         </div>
         <div>
           {" "}
           {/* Data */}
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-bold bg-gray-800 text-white p-2 rounded">
-              {isEditing ? "Editing Pin" : pin.title}
-            </h2>
+          <div className="flex justify-between items-start mb-4">
+            <div>
+              <h2 className="text-2xl font-bold bg-gray-800 text-white p-2 rounded">
+                {isEditing ? "Editing Pin" : pin.title}
+              </h2>
+              {!isEditing && pin.postedBy.userName && (
+                <div className="mt-2">
+                  <h3 className="text-lg font-bold mb-3 text-primary flex items-center gap-2">
+                    <Icon path={ICONS.person} className="w-5 h-5" />
+                    Posted By: {pin.postedBy.userName}
+                  </h3>
+                </div>
+              )}
+            </div>
             {pin.postedBy._id === currentUser?.id ? (
               !isEditing ? (
                 <button
@@ -250,30 +269,25 @@ export const PinDetailPage = ({
                   </button>
                 </div>
               )
-            ) : isSaved ? (
-              <button
-                onClick={() => onRemovePin(pin.id)}
-                className="bg-red-600 text-background px-4 py-2 rounded-md border-2 border-red-600"
-              >
-                <Icon path={ICONS.remove} />
-                Unsave
-              </button>
-            ) : (
-              <button
-                onClick={() => {
-                  if (currentUser) {
-                    onSavePin(pin.id);
-                  }
-                  else {
-                    onLoginRedirect(pathname);
-                  }
-                }}
-                className="bg-accent text-background px-4 py-2 rounded-md border-2 border-primary"
-              >
-                <Icon path={ICONS.save} />
-                Save
-              </button>
-            )}
+            ) : currentUser ? (
+              isSaved ? (
+                <button
+                  onClick={() => onRemovePin(pin.id)}
+                  className="bg-red-600 text-background font-semibold px-4 py-2 rounded-md border-2 border-red-600 hover:bg-red-700"
+                >
+                  <Icon path={ICONS.remove} />
+                  Unsave
+                </button>
+              ) : (
+                <button
+                  onClick={() => onSavePin(pin.id)}
+                  className="bg-accent text-background font-semibold px-4 py-2 rounded-md border-2 border-primary hover:bg-accent-dark"
+                >
+                  <Icon path={ICONS.save} />
+                  Save
+                </button>
+              )
+            ) : null}
           </div>
           {Object.entries({
             title: "Title",
@@ -289,18 +303,17 @@ export const PinDetailPage = ({
                   {label}
                 </label>
                 {isEditing ? (
-                    <input
-                      type="text"
-                      value={String(editablePin[key as keyof Pin]) || ""}
-                      onChange={(e) =>
-                        setEditablePin({
-                          ...editablePin,
-                          [key]: e.target.value,
-                        })
-                      }
-                      className="w-full p-2 border-2 border-secondary rounded-md mt-1 bg-background focus:outline-none focus:ring-2 focus:ring-primary"
-                    />
-                  
+                  <input
+                    type="text"
+                    value={String(editablePin[key as keyof Pin]) || ""}
+                    onChange={(e) =>
+                      setEditablePin({
+                        ...editablePin,
+                        [key]: e.target.value,
+                      })
+                    }
+                    className="w-full p-2 border-2 border-secondary rounded-md mt-1 bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
                 ) : (
                   <p className="mt-1 text-white bg-gray-800 p-2 rounded">
                     {String(pin[key as keyof Pin]) || (

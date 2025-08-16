@@ -24,8 +24,7 @@ interface UnsplashImage {
   };
 }
 
-export async function GET(_: Request) {
-  // Add 'request' parameter
+export async function GET() {
   try {
     const unsplashAccessKey = process.env.UNSPLASH_ACCESS_KEY;
 

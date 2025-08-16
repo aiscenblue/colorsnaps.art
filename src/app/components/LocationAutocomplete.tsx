@@ -1,16 +1,19 @@
 import React, { useRef, useEffect } from 'react';
 
 declare global {
-    interface Window {
-        google: {
-            maps: {
-                places: {
-                    Autocomplete: new (input: HTMLInputElement, opts?: { types: string[] }) => ({ addListener: (event: string, callback: () => void) => void; getPlace: () => { formatted_address: string } });
-                };
-            };
+  interface Window {
+    google: {
+      maps: {
+        places: {
+          Autocomplete: new (input: HTMLInputElement, options?: google.maps.places.AutocompleteOptions) => google.maps.places.Autocomplete;
         };
-    }
+        Geocoder: new () => google.maps.Geocoder;
+      };
+    };
+  }
 }
+
+
 
 export const LocationAutocomplete = React.memo(function LocationAutocomplete({ value, onChange, disabled }: { value: string, onChange: (value: string) => void, disabled: boolean }) {
     const inputRef = useRef(null);

@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { rgbToHex, ICONS } from "@/lib/utils";
 import { Icon } from "./Icon";
+import namer from "color-namer";
 import { useRouter, usePathname } from "next/navigation";
 
 import { Pin, User } from "@/lib/redux";
@@ -173,18 +174,24 @@ export const PinDetailPage = ({
           )}
           {palette && (
             <div className="mt-4">
-              <h3 className="text-lg font-bold mb-3 text-primary">Palette</h3>
-              <div className="flex items-center gap-4 overflow-x-auto pb-2">
-                {palette.slice(0, 5).map((c, i) => {
+              <h3 className="text-lg font-bold mb-3 text-primary">Full Color Palette</h3>
+              <div className="grid grid-cols-3 gap-4 max-h-96 overflow-y-auto">
+                {palette.map((c, i) => {
                   const hex = rgbToHex(c[0], c[1], c[2]);
-                  const lum =
-                    (0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2]) / 255;
+                  const rgb = `rgb(${c[0]}, ${c[1]}, ${c[2]})`;
+                  const colorNames = namer(hex);
+                  const colorName = colorNames.ntc[0].name;
+
                   return (
-                    <div
-                      key={i}
-                      className={`flex-shrink-0 w-16 h-16 rounded-full border-2 border-gray-300 ${lum > 0.5 ? "text-primary" : "text-background"}`}
-                      style={{ backgroundColor: hex }}
-                    ></div>
+                    <div key={i} className="flex flex-col items-center">
+                      <div
+                        className="w-16 h-16 rounded-full border-2 border-gray-300 mb-2"
+                        style={{ backgroundColor: hex }}
+                      ></div>
+                      <p className="text-sm text-foreground">{colorName}</p>
+                      <p className="text-sm text-foreground">{hex}</p>
+                      <p className="text-sm text-foreground">{rgb}</p>
+                    </div>
                   );
                 })}
               </div>

@@ -11,40 +11,47 @@ export default function DiscoverPage() {
   const [images, setImages] = useState<Pin[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(1); // New state for pagination
+  const [hasMore, setHasMore] = useState(true); // New state to control "Show More" button visibility
   const router = useRouter();
 
-  useEffect(() => {
-    const fetchImages = async () => {
-      try {
-        setLoading(true);
-        const fetchedImages = await clientApi.getDiscoverImages();
-        setImages(fetchedImages);
-      } catch (err) {
-        console.error('Failed to fetch discover images:', err);
-        setError('Failed to load images. Please try again later.');
-      } finally {
-        setLoading(false);
+  const fetchImages = async (pageNumber: number) => {
+    try {
+      setLoading(true);
+      const fetchedImages = await clientApi.getDiscoverImages(pageNumber); // Pass page number
+      if (fetchedImages.length === 0) {
+        setHasMore(false); // No more images to load
+      } else {
+        setImages((prevImages) => [...prevImages, ...fetchedImages]); // Append new images
       }
-    };
+    } catch (err) {
+      console.error('Failed to fetch discover images:', err);
+      setError('Failed to load images. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchImages();
+  useEffect(() => {
+    fetchImages(1); // Initial load, fetch first page
   }, []);
 
-  if (loading) {
-    return <ColorPaletteLoader />; // Render the loader component
-  }
+  const handleShowMore = () => {
+    setPage((prevPage) => prevPage + 1);
+    fetchImages(page + 1); // Fetch next page
+  };
 
   if (error) {
     return <div className="flex justify-center items-center h-screen text-red-500 text-lg">Error: {error}</div>;
   }
 
-  if (images.length === 0) {
+  if (images.length === 0 && !loading) { // Only show "No images found" if not loading and no images
     return <div className="flex justify-center items-center h-screen text-lg">No images found.</div>;
   }
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold text-center mb-8">Discover New Images</h1>
+      {/* Removed: <h1 className="text-3xl font-bold text-center mb-8">Discover New Images</h1> */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {images.map((pin) => (
           <div
@@ -70,6 +77,17 @@ export default function DiscoverPage() {
           </div>
         ))}
       </div>
+      {loading && <ColorPaletteLoader />} {/* Show loader while loading more images */}
+      {hasMore && !loading && (
+        <div className="flex justify-center mt-8">
+          <button
+            onClick={handleShowMore}
+            className="px-6 py-3 bg-blue-500 text-white rounded-lg shadow-md hover:bg-blue-600 transition duration-300"
+          >
+            Show More
+          </button>
+        </div>
+      )}
     </div>
   );
 }

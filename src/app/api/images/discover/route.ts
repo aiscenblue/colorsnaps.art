@@ -24,16 +24,23 @@ interface UnsplashImage {
   };
 }
 
-export async function GET() {
+export async function GET(request: Request) { // Add 'request' parameter
   try {
-    await DataService.clearAllPins(); // Clear existing pins
+    const { searchParams } = new URL(request.url);
+    const page = searchParams.get('page'); // Get page from query params
+
+    // Only clear pins on the first page load
+    if (page === '1') {
+      await DataService.clearAllPins();
+    }
+
     const unsplashAccessKey = process.env.UNSPLASH_ACCESS_KEY;
 
     if (!unsplashAccessKey) {
       return NextResponse.json({ error: 'Unsplash Access Key not configured' }, { status: 500 });
     }
 
-    const response = await fetch(`https://api.unsplash.com/photos/random?count=30&client_id=${unsplashAccessKey}`);
+    const response = await fetch(`https://api.unsplash.com/photos/random?count=50&client_id=${unsplashAccessKey}`); // Change count to 50
 
     if (!response.ok) {
       const errorData = await response.json();

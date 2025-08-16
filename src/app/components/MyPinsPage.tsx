@@ -9,7 +9,7 @@ export const MyPinsPage = ({ allPins, savedPinIds, onRemovePin, currentUserId }:
     const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
     const filteredPins = (() => {
-        const myCreated = allPins.filter(p => p.creatorId === currentUserId);
+        const myCreated = allPins.filter(p => p.postedBy._id === currentUserId);
         const mySaved = allPins.filter(p => savedPinIds.has(p.id));
         let pinsToShow: Pin[] = [];
         if (filter === 'all') pinsToShow = [...myCreated, ...mySaved];

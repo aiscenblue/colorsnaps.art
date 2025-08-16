@@ -18,6 +18,8 @@ const ColorPaletteLoader = dynamic(() => import('./components/ColorPaletteLoader
 const DynamicPinInput = dynamic(() => import('./components/PinInput'), { ssr: false });
 import { PinDetails } from './components/PinDetails';
 
+const DiscoverPage = dynamic(() => import('@/app/discover/page'), { ssr: false });
+
 export const MainApp = ({
   user,
   onLogout,
@@ -30,8 +32,6 @@ export const MainApp = ({
   const dispatch = useDispatch();
   const router = useRouter();
   const allPins = useSelector(selectDecryptedPins);
-  const [page, setPage] = useState(1);
-  const pinsPerPage = 10;
   const [displayedPins, setDisplayedPins] = useState<Pin[]>(allPins);
   const [scriptsLoaded, setScriptsLoaded] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -57,7 +57,6 @@ export const MainApp = ({
           }
         }
         setDisplayedPins(pins); // Set all pins directly
-        setHasMore(false); // No more pins to load, so set to false
       } catch (error) {
         console.error("Error fetching pins:", error);
       } finally {
@@ -65,7 +64,7 @@ export const MainApp = ({
       }
     };
     fetchData();
-  }, [dispatch, user, page]);
+  }, [dispatch, user]);
 
   const allRandomPins = useSelector(
     (state: RootState) => state.pins.randomPins,
@@ -137,12 +136,13 @@ export const MainApp = ({
   const addPin = async (imgUrl: string) => {
     const newPin: Pin = {
       id: Date.now().toString(),
-      imgUrl,
-      creatorId: user ? user.id : "guest",
+      image: { url: imgUrl, alt: "User uploaded image", width: 0, height: 0 },
+      destination: "",
+      save: [],
+      about: "",
+      category: "User Uploaded",
       title: "Untitled Pin",
-      description: "",
-      camera: "",
-      location: "",
+      postedBy: { _id: user ? user.id : "guest", userName: user ? user.username : "Guest", image: "" },
     };
     dispatch(pinsSlice.actions.addPin(newPin));
     await fetch('/api/pins', {
@@ -157,7 +157,7 @@ export const MainApp = ({
 
   const removePin = async (pinId: string) => {
     const newSavedIds = new Set(savedIds.filter(id => id !== pinId));
-    if (user && allPins.find((p) => p.id === pinId)?.creatorId === user.id) {
+    if (user && allPins.find((p) => p.id === pinId)?.postedBy._id === user.id) {
       dispatch(pinsSlice.actions.removePin(pinId));
       await fetch(`/api/pins/${pinId}`, { method: 'DELETE' });
     }
@@ -200,11 +200,7 @@ export const MainApp = ({
 
     switch (view) {
       case "discover":
-        return (
-          <>
-            <PinGrid pins={displayedPins} onRemovePin={undefined} />
-          </>
-        );
+        return <DiscoverPage />;
       case "myPins":
         return user ? (
           <MyPinsPage

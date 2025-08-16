@@ -3,7 +3,7 @@ import { useRouter } from 'next/navigation';
 import { AnimatedAuthBackground } from '@/app/components/AnimatedAuthBackground';
 import { AuthFormContainer } from '@/app/components/AuthFormContainer';
 
-import { User } from '@/lib/redux';
+
 
 export const AuthPage = ({ onLoginSuccess }: { onLoginSuccess: (token: string) => void }) => {
     const router = useRouter();

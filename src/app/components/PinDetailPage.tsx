@@ -3,11 +3,9 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { rgbToHex, ICONS } from "@/lib/utils";
 import { Icon } from "./Icon";
-import { LocationAutocomplete } from "./LocationAutocomplete";
 import { useRouter, usePathname } from "next/navigation";
 
 import { Pin, User } from "@/lib/redux";
-import ColorPaletteModal from "./ColorPaletteModal";
 
 declare global {
   interface Window {
@@ -55,7 +53,6 @@ export const PinDetailPage = ({
   const [exifData, setExifData] = useState<Record<string, string> | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editablePin, setEditablePin] = useState(pin);
-  const [showAllPalettes, setShowAllPalettes] = useState(false);
 
   const getImageDimensions = (url: string) => {
     const regex = /picsum\.photos\/(\d+)\/(\d+)/;
@@ -67,13 +64,13 @@ export const PinDetailPage = ({
     return { width: 400, height: 600 };
   };
 
-  const { width, height } = getImageDimensions(pin.imgUrl);
+  const { width, height } = getImageDimensions(pin.image.url);
 
   useEffect(() => {
     if (!scriptsLoaded || !pin) return;
     const img = document.createElement("img");
     img.crossOrigin = "anonymous";
-    img.src = pin.imgUrl;
+    img.src = pin.image.url;
     const colorThief = new window.ColorThief();
     img.onload = () => {
       try {
@@ -134,8 +131,8 @@ export const PinDetailPage = ({
               />
             </div>
           ) : (
-            <>
-              {isLoading && ( // Show placeholder while loading
+            <>{
+              isLoading && ( // Show placeholder while loading
                 <div className="absolute inset-0 flex items-center justify-center bg-secondary rounded-lg animate-pulse">
                   <Icon
                     path={ICONS.link}
@@ -145,7 +142,7 @@ export const PinDetailPage = ({
                 </div>
               )}
               <Image
-                src={pin.imgUrl}
+                src={pin.image.url}
                 alt={pin.title}
                 layout="intrinsic"
                 width={width}
@@ -162,14 +159,14 @@ export const PinDetailPage = ({
               Image Link
             </h3>
             <a
-              href={pin.imgUrl}
+              href={pin.image.url}
               target="_blank"
               rel="noopener noreferrer"
               className="text-foreground hover:underline break-all"
-            >{pin.imgUrl}</a>
+            >{pin.image.url}</a>
           </div>
-          {!isEditing && pin.description && (
-            <p className="text-foreground mt-2 text-lg">{pin.description}</p>
+          {!isEditing && pin.about && (
+            <p className="text-foreground mt-2 text-lg">{pin.about}</p>
           )}
           {palette && (
             <div className="mt-4">
@@ -187,25 +184,8 @@ export const PinDetailPage = ({
                     ></div>
                   );
                 })}
-                {palette.length > 5 && (
-                  <button
-                    onClick={() => setShowAllPalettes(true)}
-                    className="flex-shrink-0 w-16 h-16 rounded-full bg-blue-600 text-white flex items-center justify-center shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-75 transition duration-300 ease-in-out"
-                  >
-                    <Icon path={ICONS.eye} className="w-8 h-8" />
-                  </button>
-                )}
               </div>
             </div>
-          )}
-          {showAllPalettes && palette && (
-            <ColorPaletteModal
-              palettes={palette.map((c) => ({
-                hex: rgbToHex(c[0], c[1], c[2]),
-                rgb: { r: c[0], g: c[1], b: c[2] },
-              }))}
-              onClose={() => setShowAllPalettes(false)}
-            />
           )}
           {exifData && Object.entries(exifData).length > 1 && (
             <div className="mt-8">
@@ -222,15 +202,10 @@ export const PinDetailPage = ({
               </div>
             </div>
           )}
-          {!isEditing && pin.location && (
+          {!isEditing && pin.postedBy.userName && (
             <div className="mt-8">
-              <h3 className="text-lg font-bold mb-3 text-primary">Map</h3>
-              <iframe
-                key={pin.location}
-                className="w-full h-64 rounded-lg border-2 border-primary"
-                loading="lazy"
-                src={`https://maps.google.com/maps?q=${encodeURIComponent(pin.location)}&output=embed`}
-              ></iframe>
+              <h3 className="text-lg font-bold mb-3 text-primary">Posted By</h3>
+              <p className="mt-1 text-primary">{pin.postedBy.userName}</p>
             </div>
           )}
         </div>
@@ -241,7 +216,7 @@ export const PinDetailPage = ({
             <h2 className="text-2xl font-bold text-primary">
               {isEditing ? "Editing Pin" : pin.title}
             </h2>
-            {pin.creatorId === currentUser?.id ? (
+            {pin.postedBy._id === currentUser?.id ? (
               !isEditing ? (
                 <button
                   onClick={() => setIsEditing(true)}
@@ -278,7 +253,8 @@ export const PinDetailPage = ({
                 onClick={() => {
                   if (currentUser) {
                     onSavePin(pin.id);
-                  } else {
+                  }
+                  else {
                     onLoginRedirect(pathname);
                   }
                 }}
@@ -291,9 +267,7 @@ export const PinDetailPage = ({
           </div>
           {Object.entries({
             title: "Title",
-            description: "Description",
-            camera: "Camera",
-            location: "Location",
+            about: "Description",
           }).map(([key, label]) => (
             <div key={key} className="flex items-start gap-4 mb-4">
               <Icon
@@ -305,18 +279,9 @@ export const PinDetailPage = ({
                   {label}
                 </label>
                 {isEditing ? (
-                  key === "location" ? (
-                    <LocationAutocomplete
-                      value={editablePin.location || ""}
-                      onChange={(v) =>
-                        setEditablePin({ ...editablePin, location: v })
-                      }
-                      disabled={!scriptsLoaded}
-                    />
-                  ) : (
                     <input
                       type="text"
-                      value={editablePin[key as keyof Pin] || ""}
+                      value={String(editablePin[key as keyof Pin]) || ""}
                       onChange={(e) =>
                         setEditablePin({
                           ...editablePin,
@@ -325,10 +290,10 @@ export const PinDetailPage = ({
                       }
                       className="w-full p-2 border-2 border-secondary rounded-md mt-1 bg-background focus:outline-none focus:ring-2 focus:ring-primary"
                     />
-                  )
+                  
                 ) : (
                   <p className="mt-1 text-primary">
-                    {pin[key as keyof Pin] || (
+                    {String(pin[key as keyof Pin]) || (
                       <span className="text-secondary">Not specified</span>
                     )}
                   </p>
@@ -341,4 +306,3 @@ export const PinDetailPage = ({
     </div>
   );
 };
-

@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Icon } from './Icon';
 import { ICONS } from '@/lib/utils';
 
-import { User } from '@/lib/redux';
+
 
 export const AuthFormContainer = ({ onLoginSuccess }: { onLoginSuccess: (token: string) => void }) => {
     const [mode, setMode] = useState('login');

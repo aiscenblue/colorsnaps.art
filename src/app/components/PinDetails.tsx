@@ -14,8 +14,12 @@ export const PinDetails = ({ pinId, user, allAvailablePins, onLoginRedirect, scr
     useEffect(() => {
         const fetchPin = async () => {
             const response = await fetch(`/api/pins/${pinId}`);
-            const pin = await response.json();
-            setSelectedPin(pin);
+            if (response.ok) {
+                const pin = await response.json();
+                setSelectedPin(pin);
+            } else {
+                setSelectedPin(undefined); // Pin not found
+            }
         };
         fetchPin();
     }, [pinId]);

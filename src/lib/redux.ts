@@ -1,14 +1,24 @@
-import { createSlice, configureStore, createSelector, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, configureStore, PayloadAction } from '@reduxjs/toolkit';
 import { Provider, useSelector, useDispatch } from 'react-redux';
 
 interface Pin {
     id: string;
-    imgUrl: string;
-    creatorId: string;
+    image: {
+        url: string;
+        alt: string;
+        width: number;
+        height: number;
+    };
+    destination: string;
+    save: string[]; // Assuming this is an array of user IDs who saved it
+    about: string;
+    category: string;
     title: string;
-    description: string;
-    camera: string;
-    location: string;
+    postedBy: {
+        _id: string;
+        userName: string;
+        image: string;
+    };
 }
 
 interface PinsState {

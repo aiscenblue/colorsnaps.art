@@ -31,7 +31,7 @@ export const Pin = React.memo(function Pin({ pin, onRemovePin }: { pin: PinType,
                     </div>
                   )}
                   <Image
-                    src={pin.imgUrl}
+                    src={pin.image.url}
                     alt={pin.title}
                     layout="fill"
                     objectFit="cover"
@@ -42,7 +42,7 @@ export const Pin = React.memo(function Pin({ pin, onRemovePin }: { pin: PinType,
                   />
                 </>
               )}
-              <div className="p-3 bg-white rounded-b-md"><h3 className="font-bold text-primary">{pin.title}</h3><p className="text-sm text-secondary mt-1">{pin.description}</p><p className="text-xs text-gray-500 break-all mt-1">{pin.imgUrl}</p></div>
+              <div className="p-3 bg-white rounded-b-md"><h3 className="font-bold text-primary">{pin.title}</h3><p className="text-sm text-secondary mt-1">{pin.about}</p><p className="text-xs text-gray-500 break-all mt-1">{pin.image.url}</p></div>
             </div>
           {onRemovePin && <button onClick={(e) => {e.stopPropagation(); onRemovePin(pin.id);}} className="absolute top-2 right-2 p-2 bg-accent/70 text-background rounded-full opacity-0 group-hover:opacity-100"><Icon path={ICONS.remove} className="w-5 h-5"/></button>}
         </div>

@@ -5,8 +5,8 @@ import { ICONS } from '@/lib/utils';
 
 
 
-export const AuthFormContainer = ({ onLoginSuccess }: { onLoginSuccess: (token: string) => void }) => {
-    const [mode, setMode] = useState('login');
+export const AuthFormContainer = ({ defaultMode }: { defaultMode?: 'login' | 'register' | 'forgot' }) => {
+    const [mode, setMode] = useState(defaultMode || 'login');
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -59,28 +59,29 @@ export const AuthFormContainer = ({ onLoginSuccess }: { onLoginSuccess: (token: 
         } else {
             setMessage('Password reset link sent (simulation).'); return;
         }
-        if (result.success && result.token) onLoginSuccess(result.token);
+                if (result.success && result.token) return result.token;
         else if (result.message) setError(result.message);
+        return null;
     };
 
     return (
-        <div className="relative z-20 bg-white/80 p-10 rounded-lg shadow-none border-4 border-primary w-full max-w-md backdrop-blur-lg">
+        <div className="relative z-20 bg-gray-900 p-10 rounded-lg shadow-lg border-2 border-white w-full max-w-md">
             <form onSubmit={handleSubmit} className="space-y-4">
-                <h2 className="text-3xl font-bold text-center text-accent">{mode === 'login' ? 'Login to Color Snaps' : mode === 'register' ? 'Create Account' : 'Reset Password'}</h2>
-                {mode === 'register' && <input type="text" placeholder="Username" value={username} onChange={e => setUsername(e.target.value)} required className="w-full px-4 py-3 border-2 border-primary rounded-md text-accent" />}
-                <input type="text" placeholder={mode === 'login' ? "Username or Email" : "Email"} value={email} onChange={e => setEmail(e.target.value)} required className="w-full px-4 py-3 border-2 border-primary rounded-md text-accent" />
-                {mode !== 'forgot' && <div className="relative"><input type={showPassword ? 'text' : 'password'} placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} required className="w-full px-4 py-3 border-2 border-primary rounded-md text-accent" /><button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-0 px-3 flex items-center text-secondary"><Icon path={showPassword ? ICONS.eyeOff : ICONS.eye} /></button></div>}
-                {mode === 'register' && <div className="relative"><input type={showConfirmPassword ? 'text' : 'password'} placeholder="Confirm Password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} required className="w-full px-4 py-3 border-2 border-primary rounded-md text-accent" /><button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute inset-y-0 right-0 px-3 flex items-center text-secondary"><Icon path={showConfirmPassword ? ICONS.eyeOff : ICONS.eye} /></button></div>}
-                {mode === 'register' && <p className="text-xs text-secondary">Password must be 8+ characters and include an uppercase, lowercase, and number.</p>}
-                {mode === 'register' && hasMounted && <div className="flex items-center gap-4"><label className="font-semibold text-accent">{`${captchaNums.a} + ${captchaNums.b} = ?`}</label><input type="number" placeholder="Answer" value={captcha} onChange={e => setCaptcha(e.target.value)} required className="w-full px-4 py-3 border-2 border-primary rounded-md text-accent" /></div>}
-                {error && <p className="text-red-600 text-center font-semibold">{error}</p>}
-                {message && <p className="text-green-600 text-center font-semibold">{message}</p>}
-                <button type="submit" className="w-full bg-accent text-background font-bold py-3 rounded-md hover:bg-primary-dark mt-4">{mode === 'login' ? 'Login' : mode === 'register' ? 'Register' : 'Send Reset Link'}</button>
+                <h2 className="text-3xl font-bold text-center text-white">{mode === 'login' ? 'Login to Color Snaps' : mode === 'register' ? 'Create Account' : 'Reset Password'}</h2>
+                {mode === 'register' && <input type="text" placeholder="Username" value={username} onChange={e => setUsername(e.target.value)} required className="w-full px-4 py-3 border-2 border-gray-700 rounded-md text-white bg-gray-800 placeholder-white" />}
+                <input type="text" placeholder={mode === 'login' ? "Username or Email" : "Email"} value={email} onChange={e => setEmail(e.target.value)} required className="w-full px-4 py-3 border-2 border-gray-700 rounded-md text-white bg-gray-800 placeholder-white" />
+                {mode !== 'forgot' && <div className="relative"><input type={showPassword ? 'text' : 'password'} placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} required className="w-full px-4 py-3 border-2 border-gray-700 rounded-md text-white bg-gray-800 placeholder-white" /><button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-300"><Icon path={showPassword ? ICONS.eyeOff : ICONS.eye} /></button></div>}
+                {mode === 'register' && <div className="relative"><input type={showConfirmPassword ? 'text' : 'password'} placeholder="Confirm Password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} required className="w-full px-4 py-3 border-2 border-gray-700 rounded-md text-white bg-gray-800 placeholder-white" /><button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-300"><Icon path={showConfirmPassword ? ICONS.eyeOff : ICONS.eye} /></button></div>}
+                {mode === 'register' && <p className="text-xs text-gray-300">Password must be 8+ characters and include an uppercase, lowercase, and number.</p>}
+                {mode === 'register' && hasMounted && <div className="flex items-center gap-4"><label className="font-semibold text-accent">{`${captchaNums.a} + ${captchaNums.b} = ?`}</label><input type="number" placeholder="Answer" value={captcha} onChange={e => setCaptcha(e.target.value)} required className="w-full px-4 py-3 border-2 border-gray-700 rounded-md text-white bg-gray-800 placeholder-white" /></div>}
+                {error && <p className="text-red-400 text-center font-semibold">{error}</p>}
+                {message && <p className="text-green-400 text-center font-semibold">{message}</p>}
+                <button type="submit" className="w-full bg-transparent border-2 border-white text-white font-bold py-3 rounded-md hover:bg-white hover:text-gray-900 mt-4">{mode === 'login' ? 'Login' : mode === 'register' ? 'Register' : 'Send Reset Link'}</button>
             </form>
-            <div className="text-center mt-6 text-secondary">
-                {mode === 'login' && <><p>No account? <button onClick={() => setMode('register')} className="text-accent font-semibold hover:underline">Register</button></p><button onClick={() => setMode('forgot')} className="text-sm mt-2 hover:underline">Forgot Password?</button></>}
-                {mode === 'register' && <p>Already have an account? <button onClick={() => setMode('login')} className="text-accent font-semibold hover:underline">Login</button></p>}
-                {mode === 'forgot' && <p><button onClick={() => setMode('login')} className="text-accent font-semibold hover:underline">Back to Login</button></p>}
+            <div className="text-center mt-6 text-gray-300">
+                {mode === 'login' && <><p>No account? <button onClick={() => setMode('register')} className="text-white font-semibold hover:underline">Register</button></p><button onClick={() => setMode('forgot')} className="text-sm mt-2 hover:underline">Forgot Password?</button></>}
+                {mode === 'register' && <p>Already have an account? <button onClick={() => setMode('login')} className="text-white font-semibold hover:underline">Login</button></p>}
+                {mode === 'forgot' && <p><button onClick={() => setMode('login')} className="text-white font-semibold hover:underline">Back to Login</button></p>}
             </div>
         </div>
     );

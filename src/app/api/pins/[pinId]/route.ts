@@ -14,3 +14,14 @@ export async function GET(
     { status: 404 },
   );
 }
+
+export async function PUT(request: Request) {
+    const pin = await request.json();
+    await DataService.updatePin(pin);
+    return NextResponse.json({ success: true });
+}
+
+export async function DELETE(request: Request, { params }: { params: { pinId: string } }) {
+    await DataService.removePin(params.pinId);
+    return NextResponse.json({ success: true });
+}

@@ -19,18 +19,27 @@ export const PinDetails = ({
   scriptsLoaded: boolean;
 }) => {
   const [selectedPin, setSelectedPin] = useState<Pin | undefined>();
+  const [isLoading, setIsLoading] = useState(true); // Add isLoading state
   const { savedIds } = useSelector((state: RootState) => state.pins);
   const dispatch = useDispatch();
   const router = useRouter();
 
   useEffect(() => {
     const fetchPin = async () => {
-      const response = await fetch(`/api/pins/${pinId}`);
-      if (response.ok) {
-        const pin = await response.json();
-        setSelectedPin(pin);
-      } else {
-        setSelectedPin(undefined); // Pin not found
+      setIsLoading(true); // Set loading to true when fetch starts
+      try {
+        const response = await fetch(`/api/pins/${pinId}`);
+        if (response.ok) {
+          const pin = await response.json();
+          setSelectedPin(pin);
+        } else {
+          setSelectedPin(undefined); // Pin not found
+        }
+      } catch (error) {
+        console.error("Error fetching pin:", error);
+        setSelectedPin(undefined); // Handle fetch errors as pin not found
+      } finally {
+        setIsLoading(false); // Set loading to false when fetch completes
       }
     };
     fetchPin();
@@ -59,6 +68,10 @@ export const PinDetails = ({
     dispatch(pinsSlice.actions.removeSavedPinId(pinId));
     // TODO: Remove pin from API
   };
+
+  if (isLoading) {
+    return null; // Show nothing while loading
+  }
 
   if (!selectedPin) {
     return <PinNotFound />;

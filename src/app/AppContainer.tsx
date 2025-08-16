@@ -25,25 +25,10 @@ export const AppContainer = () => {
         loadUserFromToken();
     }, [dispatch]);
 
-    const handleLogin = (token: string) => {
-        localStorage.setItem('pins_token', token);
-        const loadUser = async () => {
-            const response = await fetch('/api/auth/user', {
-                headers: {
-                    'Authorization': token
-                }
-            });
-            const user = await response.json();
-            if (user) {
-                dispatch(authSlice.actions.loginSuccess(user));
-            }
-        };
-        loadUser();
-    };
     const handleLogout = () => { 
         localStorage.removeItem('pins_token');
         dispatch(authSlice.actions.logout()); 
     };
 
-    return <MainApp user={currentUser} onLogout={handleLogout} onLoginSuccess={handleLogin} />;
+    return <MainApp user={currentUser} onLogout={handleLogout} />;
 }

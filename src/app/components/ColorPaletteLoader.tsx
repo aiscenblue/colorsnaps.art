@@ -1,8 +1,5 @@
-
-
-import React, { useState, useEffect } from 'react';
-import { motion, easeInOut } from 'framer-motion';
-
+import React, { useState, useEffect } from "react";
+import { motion, easeInOut } from "framer-motion";
 
 const generateRandomBlue = () => {
   const hue = 200 + Math.random() * 40; // Hue for blue (200-240)
@@ -40,7 +37,7 @@ const ColorPaletteLoader: React.FC = () => {
   };
 
   return (
-    <div className="flex space-x-2 justify-center items-center h-screen">
+    <div className="flex space-x-2 justify-center items-center">
       {colors.map((color, index) => (
         <motion.div
           key={index}
@@ -63,3 +60,4 @@ const ColorPaletteLoader: React.FC = () => {
 };
 
 export default ColorPaletteLoader;
+

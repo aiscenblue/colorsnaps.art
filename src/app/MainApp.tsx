@@ -11,7 +11,7 @@ import { PinGrid } from "@/app/components/PinGrid";
 import { MyPinsPage } from "@/app/components/MyPinsPage";
 import { Header } from "@/app/components/Header";
 import { useRouter, usePathname } from "next/navigation";
-import { AuthPage } from "@/app/AuthPage";
+
 import dynamic from 'next/dynamic';
 
 const ColorPaletteLoader = dynamic(() => import('./components/ColorPaletteLoader'), { ssr: false });
@@ -23,11 +23,9 @@ const DiscoverPage = dynamic(() => import('@/app/discover/page'), { ssr: false }
 export const MainApp = ({
   user,
   onLogout,
-  onLoginSuccess,
 }: {
   user: User | null;
   onLogout: () => void;
-  onLoginSuccess: (token: string) => void;
 }) => {
   const dispatch = useDispatch();
   const router = useRouter();
@@ -79,7 +77,7 @@ export const MainApp = ({
   const view =
     currentPath === "/" || currentPath === "/discover"
       ? "discover"
-      : currentPath === "/my-pins"
+      : currentPath === "/pins/me"
         ? "myPins"
         : currentPath.startsWith("/details/")
           ? "details"
@@ -133,28 +131,6 @@ export const MainApp = ({
     router.push("/"); // Redirect to root, which will show AuthPage if not logged in
   };
 
-  const addPin = async (imgUrl: string) => {
-    const newPin: Pin = {
-      id: Date.now().toString(),
-      image: { url: imgUrl, alt: "User uploaded image", width: 0, height: 0 },
-      destination: "",
-      save: [],
-      about: "",
-      category: "User Uploaded",
-      title: "Untitled Pin",
-      postedBy: { _id: user ? user.id : "guest", userName: user ? user.username : "Guest", image: "" },
-    };
-    dispatch(pinsSlice.actions.addPin(newPin));
-    await fetch('/api/pins', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify([newPin])
-    });
-    router.push(`/details/${newPin.id}`);
-  };
-
   const removePin = async (pinId: string) => {
     const newSavedIds = new Set(savedIds.filter(id => id !== pinId));
     if (user && allPins.find((p) => p.id === pinId)?.postedBy._id === user.id) {
@@ -192,6 +168,8 @@ export const MainApp = ({
       return <PinDetails pinId={pinIdFromUrl} user={user} allAvailablePins={allAvailablePins} onLoginRedirect={handleLoginRedirect} scriptsLoaded={scriptsLoaded} />;
     }
 
+    
+
     switch (view) {
       case "discover":
         return <DiscoverPage />;
@@ -204,7 +182,11 @@ export const MainApp = ({
             currentUserId={user.id}
           />
         ) : (
-          <AuthPage onLoginSuccess={onLoginSuccess} />
+          // If not logged in, and on myPins, redirect to login
+          (() => {
+            router.push('/login');
+            return null;
+          })()
         );
       default:
         return (
@@ -221,10 +203,11 @@ export const MainApp = ({
         activeView={view}
         onViewChange={(v: string) => {
           if (v === "discover") router.push("/");
-          else if (v === "myPins") router.push("/my-pins");
+          else if (v === "myPins") router.push("/pins/me");
         }}
         onLogout={onLogout}
         isLoggedIn={!!user}
+        router={router}
       />
       <main className="px-4 py-6 sm:px-6 lg:px-8">
         

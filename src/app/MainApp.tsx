@@ -15,7 +15,7 @@ import { AuthPage } from "@/app/AuthPage";
 import dynamic from 'next/dynamic';
 
 const ColorPaletteLoader = dynamic(() => import('./components/ColorPaletteLoader'), { ssr: false });
-const DynamicPinInput = dynamic(() => import('./components/PinInput'), { ssr: false });
+
 import { PinDetails } from './components/PinDetails';
 
 const DiscoverPage = dynamic(() => import('@/app/discover/page'), { ssr: false });
@@ -177,13 +177,7 @@ export const MainApp = ({
     }
   };
 
-  const [url, setUrl] = React.useState("");
-  const handleAddPin = () => {
-    if (url.trim()) {
-      addPin(url.trim());
-      setUrl("");
-    }
-  };
+  
 
   const pathname = usePathname();
   const isDetailsPage = pathname.startsWith("/details/");
@@ -233,8 +227,7 @@ export const MainApp = ({
         isLoggedIn={!!user}
       />
       <main className="px-4 py-6 sm:px-6 lg:px-8">
-        {/* Pin Input always visible */}
-        <DynamicPinInput url={url} setUrl={setUrl} handleAddPin={handleAddPin} />
+        
         {renderView()}
       </main>
     </div>

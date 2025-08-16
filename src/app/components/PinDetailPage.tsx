@@ -53,6 +53,7 @@ export const PinDetailPage = ({
   const [exifData, setExifData] = useState<Record<string, string> | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editablePin, setEditablePin] = useState(pin);
+  
 
   const getImageDimensions = (url: string) => {
     const regex = /picsum\.photos\/(\d+)\/(\d+)/;
@@ -84,6 +85,8 @@ export const PinDetailPage = ({
         });
     };
   }, [pin, scriptsLoaded]);
+
+  
 
   const handleSave = () => {
     onUpdatePin(editablePin);
@@ -166,7 +169,7 @@ export const PinDetailPage = ({
             >{pin.image.url}</a>
           </div>
           {!isEditing && pin.about && (
-            <p className="text-foreground mt-2 text-lg">{pin.about}</p>
+            <p className="text-white mt-2 text-lg bg-gray-800 p-2 rounded">{pin.about}</p>
           )}
           {palette && (
             <div className="mt-4">
@@ -213,7 +216,7 @@ export const PinDetailPage = ({
           {" "}
           {/* Data */}
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-bold text-primary">
+            <h2 className="text-2xl font-bold bg-gray-800 text-white p-2 rounded">
               {isEditing ? "Editing Pin" : pin.title}
             </h2>
             {pin.postedBy._id === currentUser?.id ? (
@@ -292,7 +295,7 @@ export const PinDetailPage = ({
                     />
                   
                 ) : (
-                  <p className="mt-1 text-primary">
+                  <p className="mt-1 text-white bg-gray-800 p-2 rounded">
                     {String(pin[key as keyof Pin]) || (
                       <span className="text-secondary">Not specified</span>
                     )}

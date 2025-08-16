@@ -27,9 +27,9 @@ export const PinGrid = ({
   const columns: Pin[][] = Array.from({ length: numColumns }, () => []);
   pins.forEach((pin, i) => columns[i % numColumns].push(pin));
   return (
-    <div className="flex flex-row items-start gap-4">
+    <div className="flex flex-row items-start gap-6">
       {columns.map((col, i) => (
-        <div key={i} className="flex flex-col w-full gap-4">
+        <div key={i} className="flex flex-col w-full gap-6">
           {col.map((pin) => (
             <PinComponent key={pin.id} pin={pin} onRemovePin={onRemovePin} />
           ))}

@@ -52,11 +52,11 @@ export default function DiscoverPage() {
   return (
     <div className="container mx-auto p-4">
       {/* Removed: <h1 className="text-3xl font-bold text-center mb-8">Discover New Images</h1> */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {images.map((pin) => (
           <div
             key={pin.id}
-            className="bg-white rounded-lg shadow-md overflow-hidden transform transition duration-300 hover:scale-105 cursor-pointer"
+            className="bg-gray-900 rounded-lg shadow-md overflow-hidden transform transition duration-300 hover:scale-105 cursor-pointer text-white"
             onClick={() => router.push(`/details/${pin.id}`)}
           >
             <div className="relative w-full h-64">
@@ -68,10 +68,10 @@ export default function DiscoverPage() {
                 className="rounded-t-lg"
               />
             </div>
-            <div className="p-4">
-              <p className="text-gray-800 font-semibold text-lg truncate">{pin.title}</p>
+            <div className="p-4 bg-gray-800 rounded-b-lg">
+              <p className="text-white font-semibold text-lg truncate">{pin.title}</p>
               <div className="flex items-center mt-2">
-                <p className="text-gray-600 text-sm">By {pin.postedBy.userName}</p>
+                <p className="text-gray-300 text-sm">By {pin.postedBy.userName}</p>
               </div>
             </div>
           </div>
@@ -82,7 +82,7 @@ export default function DiscoverPage() {
         <div className="flex justify-center mt-8">
           <button
             onClick={handleShowMore}
-            className="px-6 py-3 bg-blue-500 text-white rounded-lg shadow-md hover:bg-blue-600 transition duration-300"
+            className="px-6 py-3 bg-transparent border-2 border-white text-white rounded-lg shadow-md hover:scale-105 transition duration-300"
           >
             Show More
           </button>

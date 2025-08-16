@@ -4,7 +4,7 @@ import { ICONS } from '@/lib/utils'; // Import ICONS from utils
 
 export const PinNotFound = () => {
   return (
-    <div className="flex flex-col items-center justify-center h-full text-secondary">
+    <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center justify-center text-secondary">
       <Icon path={ICONS.warning} className="w-24 h-24 mb-4 animate-bounce" />
       <h2 className="text-3xl font-bold mb-2">Pin Not Found</h2>
       <p className="text-lg text-center">

@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import { PROXY_URL, rgbToHex, ICONS } from "@/lib/utils";
+import { rgbToHex, ICONS } from "@/lib/utils";
 import { Icon } from "./Icon";
 import { LocationAutocomplete } from "./LocationAutocomplete";
 import { useRouter, usePathname } from "next/navigation";
@@ -73,7 +73,7 @@ export const PinDetailPage = ({
     if (!scriptsLoaded || !pin) return;
     const img = document.createElement("img");
     img.crossOrigin = "anonymous";
-    img.src = `${PROXY_URL}${encodeURIComponent(pin.imgUrl)}`;
+    img.src = pin.imgUrl;
     const colorThief = new window.ColorThief();
     img.onload = () => {
       try {
@@ -145,7 +145,7 @@ export const PinDetailPage = ({
                 </div>
               )}
               <Image
-                src={`${PROXY_URL}${pin.imgUrl}`}
+                src={pin.imgUrl}
                 alt={pin.title}
                 layout="intrinsic"
                 width={width}
@@ -162,11 +162,11 @@ export const PinDetailPage = ({
               Image Link
             </h3>
             <a
-              href={`${PROXY_URL}${pin.imgUrl}`}
+              href={pin.imgUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="text-foreground hover:underline break-all"
-            >{`${PROXY_URL}${pin.imgUrl}`}</a>
+            >{pin.imgUrl}</a>
           </div>
           {!isEditing && pin.description && (
             <p className="text-foreground mt-2 text-lg">{pin.description}</p>
@@ -211,7 +211,7 @@ export const PinDetailPage = ({
             <div className="mt-8">
               <h3 className="text-lg font-bold mb-3 text-primary">Metadata</h3>
               <div className="grid grid-cols-2 gap-2 text-sm text-primary">
-                {Object.entries(exifData).map(([key, value]) => (
+                {Object.entries(exifData).filter(([key]) => key !== 'UserComment' && key !== 'thumbnail').map(([key, value]) => (
                   <p key={key}>
                     <strong>{key}:</strong>{" "}
                     {typeof value === "object" && value !== null

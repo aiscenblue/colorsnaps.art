@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { PROXY_URL } from '@/lib/utils';
+
 import { Icon } from './Icon';
 import { ICONS } from '@/lib/utils';
 
@@ -31,7 +31,7 @@ export const Pin = React.memo(function Pin({ pin, onRemovePin }: { pin: PinType,
                     </div>
                   )}
                   <Image
-                    src={`${PROXY_URL}${encodeURIComponent(pin.imgUrl)}`}
+                    src={pin.imgUrl}
                     alt={pin.title}
                     layout="fill"
                     objectFit="cover"
